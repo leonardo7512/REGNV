@@ -18,6 +18,7 @@
         .form-group label.required::after { content: " *"; color: #ef4444; }
         .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; transition: border-color 0.3s; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1); }
+        .form-group input:read-only { background-color: #e9ecef; cursor: not-allowed; }
         .form-group textarea { min-height: 80px; resize: vertical; }
         .btn { display: inline-block; width: 100%; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s; text-align: center; }
         .btn-primary { background-color: #28a745; color: white; }
@@ -50,13 +51,18 @@
             <form id="nvForm" novalidate>
                 <div class="form-group full-width" style="background-color: #eef7ff; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
                     <label for="ejecutor" class="required">Tu Nombre (Ejecutor)</label>
-                    <input type="text" id="ejecutor" placeholder="Ingresa tu nombre y apellido" required>
+                    <select id="ejecutor" required>
+                        <option value="" disabled selected>-- Selecciona tu usuario --</option>
+                        <option value="JFG">JFG</option>
+                        <option value="LCT">LCT</option>
+                        <option value="DMN">DMN</option>
+                    </select>
                 </div>
 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="fechaNV" class="required">Fecha Actual</label>
-                        <input type="date" id="fechaNV" required>
+                        <label for="fechaNV" class="required">Fecha y Hora de Registro</label>
+                        <input type="datetime-local" id="fechaNV" readonly>
                     </div>
                     <div class="form-group">
                         <label for="numeroNV" class="required">Número Nota Venta</label>
@@ -85,7 +91,11 @@
                     </div>
                 </div>
 
-                <h3 style="text-align: center; margin-top: 30px; margin-bottom: 20px; color: #333;">Adjuntar Fotos</h3>
+                <div style="margin-top: 30px; margin-bottom: 30px;">
+                    <button type="submit" id="submitButton" class="btn btn-primary">Guardar Nota de Venta</button>
+                </div>
+
+                <h3 style="text-align: center; border-top: 1px solid #eee; padding-top: 20px; margin-bottom: 20px; color: #333;">Adjuntar Fotos</h3>
                 
                 <div class="form-grid" style="gap: 25px;">
                      <div class="form-group file-input-group">
@@ -113,10 +123,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div style="margin-top: 30px;">
-                    <button type="submit" id="submitButton" class="btn btn-primary">Guardar Nota de Venta</button>
-                </div>
             </form>
             <div id="statusMessage" class="status-message"></div>
         </div>
@@ -125,7 +131,7 @@
     <script>
         // --- CONFIGURACIÓN ---
         // ⚠️ ¡IMPORTANTE! REEMPLAZA ESTA URL CON LA URL DE TU PROPIA APLICACIÓN WEB DE GOOGLE APPS SCRIPT
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw9bVNGdGxlai8W3sZz0wUy01RpU8DaZPfoMy_KRZkmXhDw7GoDwBiZj6dfPr4xdxw/exec';
+        const WEB_APP_URL = 'URL_DE_TU_APLICACION_WEB_AQUI';
 
         // --- ELEMENTOS DEL DOM ---
         const nvForm = document.getElementById('nvForm');
@@ -194,13 +200,20 @@
         }
 
         // --- LÓGICA PRINCIPAL ---
-        fileInputs.forEach(config => {
-            config.input.addEventListener('change', () => previewFile(config));
-            config.preview.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-photo-btn')) {
-                    config.input.value = '';
-                    previewFile(config);
-                }
+        document.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const formattedDateTime = now.toISOString().slice(0, 16);
+            document.getElementById('fechaNV').value = formattedDateTime;
+
+            fileInputs.forEach(config => {
+                config.input.addEventListener('change', () => previewFile(config));
+                config.preview.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('remove-photo-btn')) {
+                        config.input.value = '';
+                        previewFile(config);
+                    }
+                });
             });
         });
 
@@ -214,11 +227,11 @@
             }
 
             // Validación de campos
-            const requiredFields = ['ejecutor', 'fechaNV', 'numeroNV', 'turnoNV', 'vendedorNV', 'statusNV', 'photoNV1'];
+            const requiredFields = ['ejecutor', 'numeroNV', 'turnoNV', 'vendedorNV', 'statusNV', 'photoNV1'];
             for (const fieldId of requiredFields) {
                 const field = document.getElementById(fieldId);
                 if (!field.value) {
-                    showStatus(`Error: El campo "${field.previousElementSibling.textContent}" es obligatorio.`, 'error');
+                    showStatus(`Error: El campo "${field.labels[0].textContent}" es obligatorio.`, 'error');
                     field.focus();
                     return;
                 }
