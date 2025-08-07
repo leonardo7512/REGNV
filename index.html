@@ -99,29 +99,26 @@
                 
                 <div class="form-grid" style="gap: 25px;">
                      <div class="form-group file-input-group">
-                        <label for="photoNV1" class="required">Foto Nota de Venta 1</label>
-                        <input type="file" id="photoNV1" accept="image/*" required>
-                        <div id="previewNV1" class="preview-container">
-                            <small>Previsualización Foto 1</small>
-                            <button type="button" id="removePhotoNV1" class="remove-photo-btn" title="Quitar Foto 1">X</button>
-                        </div>
-                    </div>
+                         <label for="photoNV1" class="required">Foto Nota de Venta 1</label>
+                         <input type="file" id="photoNV1" accept="image/*" required>
+                         <div id="previewNV1" class="preview-container">
+                             <small>Previsualización Foto 1</small>
+                         </div>
+                     </div>
                      <div class="form-group file-input-group">
-                        <label for="photoNV2">Foto Nota de Venta 2 (Opcional)</label>
-                        <input type="file" id="photoNV2" accept="image/*">
-                        <div id="previewNV2" class="preview-container">
-                            <small>Previsualización Foto 2</small>
-                            <button type="button" id="removePhotoNV2" class="remove-photo-btn" title="Quitar Foto 2">X</button>
-                        </div>
-                    </div>
+                         <label for="photoNV2">Foto Nota de Venta 2 (Opcional)</label>
+                         <input type="file" id="photoNV2" accept="image/*">
+                         <div id="previewNV2" class="preview-container">
+                             <small>Previsualización Foto 2</small>
+                         </div>
+                     </div>
                      <div class="form-group file-input-group">
-                        <label for="photoNV3">Foto Nota de Venta 3 (Opcional)</label>
-                        <input type="file" id="photoNV3" accept="image/*">
-                        <div id="previewNV3" class="preview-container">
-                            <small>Previsualización Foto 3</small>
-                            <button type="button" id="removePhotoNV3" class="remove-photo-btn" title="Quitar Foto 3">X</button>
-                        </div>
-                    </div>
+                         <label for="photoNV3">Foto Nota de Venta 3 (Opcional)</label>
+                         <input type="file" id="photoNV3" accept="image/*">
+                         <div id="previewNV3" class="preview-container">
+                             <small>Previsualización Foto 3</small>
+                         </div>
+                     </div>
                 </div>
             </form>
             <div id="statusMessage" class="status-message"></div>
@@ -139,9 +136,9 @@
         const statusMessage = document.getElementById('statusMessage');
 
         const fileInputs = [
-            { id: 'photoNV1', input: document.getElementById('photoNV1'), preview: document.getElementById('previewNV1'), removeBtn: document.getElementById('removePhotoNV1'), label: 'Foto 1' },
-            { id: 'photoNV2', input: document.getElementById('photoNV2'), preview: document.getElementById('previewNV2'), removeBtn: document.getElementById('removePhotoNV2'), label: 'Foto 2' },
-            { id: 'photoNV3', input: document.getElementById('photoNV3'), preview: document.getElementById('previewNV3'), removeBtn: document.getElementById('removePhotoNV3'), label: 'Foto 3' }
+            { id: 'photoNV1', input: document.getElementById('photoNV1'), preview: document.getElementById('previewNV1'), label: 'Foto 1' },
+            { id: 'photoNV2', input: document.getElementById('photoNV2'), preview: document.getElementById('previewNV2'), label: 'Foto 2' },
+            { id: 'photoNV3', input: document.getElementById('photoNV3'), preview: document.getElementById('previewNV3'), label: 'Foto 3' }
         ];
 
         // --- FUNCIONES DE UTILIDAD ---
@@ -161,26 +158,32 @@
         }
 
         function previewFile(fileConfig) {
-            const { input, preview, removeBtn, label } = fileConfig;
+            const { input, preview, label } = fileConfig;
             const file = input.files[0];
             
-            removeBtn.style.display = file ? 'flex' : 'none';
-
+            // Limpiar vista previa anterior
+            preview.innerHTML = '';
+            
             if (file) {
-                preview.innerHTML = `<small>Cargando...</small><button type="button" id="remove${fileConfig.id}" class="remove-photo-btn" title="Quitar ${label}" style="display:flex;">X</button>`;
+                const small = document.createElement('small');
+                small.textContent = 'Cargando...';
+                preview.appendChild(small);
+
                 const reader = new FileReader();
                 reader.onload = e => {
-                    preview.innerHTML = `<img src="${e.target.result}" alt="Previsualización"><button type="button" id="remove${fileConfig.id}" class="remove-photo-btn" title="Quitar ${label}" style="display:flex;">X</button>`;
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Previsualización"><button type="button" class="remove-photo-btn" title="Quitar ${label}" style="display:flex;">X</button>`;
                 };
                 reader.readAsDataURL(file);
             } else {
-                preview.innerHTML = `<small>Previsualización ${label}</small><button type="button" id="remove${fileConfig.id}" class="remove-photo-btn" title="Quitar ${label}"></button>`;
+                const small = document.createElement('small');
+                small.textContent = `Previsualización ${label}`;
+                preview.appendChild(small);
             }
         }
         
         function readFileAsBase64(file) {
             return new Promise((resolve, reject) => {
-                if (!file) return resolve(null); // Resuelve como null si no hay archivo
+                if (!file) return resolve(null);
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     if (event.target.readyState === FileReader.DONE && typeof event.target.result === 'string') {
@@ -200,18 +203,22 @@
         }
 
         // --- LÓGICA PRINCIPAL ---
-        document.addEventListener('DOMContentLoaded', () => {
+        function setInitialDateTime() {
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             const formattedDateTime = now.toISOString().slice(0, 16);
             document.getElementById('fechaNV').value = formattedDateTime;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setInitialDateTime();
 
             fileInputs.forEach(config => {
                 config.input.addEventListener('change', () => previewFile(config));
                 config.preview.addEventListener('click', (e) => {
                     if (e.target.classList.contains('remove-photo-btn')) {
-                        config.input.value = '';
-                        previewFile(config);
+                        config.input.value = ''; // Limpia el input de archivo
+                        previewFile(config); // Actualiza la vista previa para mostrar el estado por defecto
                     }
                 });
             });
@@ -221,17 +228,17 @@
             event.preventDefault();
             hideStatus();
 
-            if (WEB_APP_URL === 'URL_DE_TU_APLICACION_WEB_AQUI') {
+            if (WEB_APP_URL.includes('URL_DE_TU_APLICACION')) {
                 showStatus('Error: La URL de la aplicación web no ha sido configurada en el script.', 'error');
                 return;
             }
 
-            // Validación de campos
             const requiredFields = ['ejecutor', 'numeroNV', 'turnoNV', 'vendedorNV', 'statusNV', 'photoNV1'];
             for (const fieldId of requiredFields) {
                 const field = document.getElementById(fieldId);
+                const label = field.labels[0].textContent.replace(' *', '');
                 if (!field.value) {
-                    showStatus(`Error: El campo "${field.labels[0].textContent}" es obligatorio.`, 'error');
+                    showStatus(`Error: El campo "${label}" es obligatorio.`, 'error');
                     field.focus();
                     return;
                 }
@@ -241,12 +248,15 @@
             showStatus('Preparando y leyendo archivos...', 'loading');
 
             try {
-                // Leer todos los archivos en paralelo
                 const filePromises = fileInputs.map(config => readFileAsBase64(config.input.files[0]));
                 const [photoResult1, photoResult2, photoResult3] = await Promise.all(filePromises);
 
                 const formData = {
-                    fechaNV: document.getElementById('fechaNV').value,
+                    // El campo 'fechaNV' del formulario solo se usa para mostrar la fecha al usuario.
+                    // Para el envío, creamos un nuevo objeto Date en el momento exacto del envío
+                    // y lo convertimos a un string ISO completo (formato UTC).
+                    // Google Sheets lo interpretará y mostrará correctamente en la zona horaria de la hoja.
+                    fechaNV: new Date().toISOString(),
                     numeroNV: document.getElementById('numeroNV').value.trim(),
                     turnoNV: document.getElementById('turnoNV').value.trim(),
                     vendedorNV: document.getElementById('vendedorNV').value.trim(),
@@ -260,12 +270,11 @@
 
                 showStatus('Enviando datos al servidor... Esto puede tardar un momento.', 'loading');
 
-                // Enviar datos usando fetch
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
                     mode: 'cors',
                     redirect: 'follow',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Apps Script funciona mejor con text/plain para POST
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(formData)
                 });
                 
@@ -274,7 +283,8 @@
                 if (result.status === 'success') {
                     showStatus(result.message || '¡Nota de Venta guardada con éxito!', 'success');
                     nvForm.reset();
-                    fileInputs.forEach(previewFile); // Limpiar previsualizaciones
+                    setInitialDateTime(); // Volver a poner la fecha y hora después de resetear
+                    fileInputs.forEach(config => previewFile(config)); // Limpiar previsualizaciones
                 } else {
                     throw new Error(result.message || 'Ocurrió un error desconocido en el servidor.');
                 }
