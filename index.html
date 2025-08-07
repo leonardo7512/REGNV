@@ -19,14 +19,11 @@
         .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; transition: border-color 0.3s; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1); }
         
-        /* --- INICIO DE LA MODIFICACIÓN --- */
         .form-group input:read-only {
             background-color: #e9ecef;
             cursor: not-allowed;
-            /* Esta línea evita que los navegadores móviles abran el selector de fecha */
             pointer-events: none;
         }
-        /* --- FIN DE LA MODIFICACIÓN --- */
 
         .form-group textarea { min-height: 80px; resize: vertical; }
         .btn { display: inline-block; width: 100%; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s; text-align: center; }
@@ -107,27 +104,27 @@
                 <h3 style="text-align: center; border-top: 1px solid #eee; padding-top: 20px; margin-bottom: 20px; color: #333;">Adjuntar Fotos</h3>
                 
                 <div class="form-grid" style="gap: 25px;">
-                     <div class="form-group file-input-group">
-                         <label for="photoNV1" class="required">Foto Nota de Venta 1</label>
-                         <input type="file" id="photoNV1" accept="image/*" required>
-                         <div id="previewNV1" class="preview-container">
-                             <small>Previsualización Foto 1</small>
-                         </div>
-                     </div>
-                     <div class="form-group file-input-group">
-                         <label for="photoNV2">Foto Nota de Venta 2 (Opcional)</label>
-                         <input type="file" id="photoNV2" accept="image/*">
-                         <div id="previewNV2" class="preview-container">
-                             <small>Previsualización Foto 2</small>
-                         </div>
-                     </div>
-                     <div class="form-group file-input-group">
-                         <label for="photoNV3">Foto Nota de Venta 3 (Opcional)</label>
-                         <input type="file" id="photoNV3" accept="image/*">
-                         <div id="previewNV3" class="preview-container">
-                             <small>Previsualización Foto 3</small>
-                         </div>
-                     </div>
+                    <div class="form-group file-input-group">
+                        <label for="photoNV1" class="required">Foto Nota de Venta 1</label>
+                        <input type="file" id="photoNV1" accept="image/*" required>
+                        <div id="previewNV1" class="preview-container">
+                            <small>Previsualización Foto 1</small>
+                        </div>
+                    </div>
+                    <div class="form-group file-input-group">
+                        <label for="photoNV2">Foto Nota de Venta 2 (Opcional)</label>
+                        <input type="file" id="photoNV2" accept="image/*">
+                        <div id="previewNV2" class="preview-container">
+                            <small>Previsualización Foto 2</small>
+                        </div>
+                    </div>
+                    <div class="form-group file-input-group">
+                        <label for="photoNV3">Foto Nota de Venta 3 (Opcional)</label>
+                        <input type="file" id="photoNV3" accept="image/*">
+                        <div id="previewNV3" class="preview-container">
+                            <small>Previsualización Foto 3</small>
+                        </div>
+                    </div>
                 </div>
             </form>
             <div id="statusMessage" class="status-message"></div>
@@ -137,7 +134,7 @@
     <script>
         // --- CONFIGURACIÓN ---
         // ⚠️ ¡IMPORTANTE! REEMPLAZA ESTA URL CON LA URL DE TU PROPIA APLICACIÓN WEB DE GOOGLE APPS SCRIPT
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw9bVNGdGxlai8W3sZz0wUy01RpU8DaZPfoMy_KRZkmXhDw7GoDwBiZj6dfPr4xdxw/exec';
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw87DRQRG8fMqJs3Gb5g482GbuW0tz0_tBYF_p4rzpdXyVZCbbq6L0LkAADO0XSWZJy/exec';
 
         // --- ELEMENTOS DEL DOM ---
         const nvForm = document.getElementById('nvForm');
@@ -211,12 +208,25 @@
         }
 
         // --- LÓGICA PRINCIPAL ---
+
+        // --- INICIO DE LA MODIFICACIÓN ---
         function setInitialDateTime() {
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            const formattedDateTime = now.toISOString().slice(0, 16);
+            const now = new Date(); // Obtiene la fecha y hora local actual
+
+            // Construimos manualmente el formato 'YYYY-MM-DDTHH:MM' que el input necesita
+            const year = now.getFullYear();
+            // getMonth() es base 0 (Enero=0), por eso sumamos 1. padStart asegura 2 dígitos (ej. 08)
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+
+            // Este es el formato exacto requerido por <input type="datetime-local">
+            const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+            
             document.getElementById('fechaNV').value = formattedDateTime;
         }
+        // --- FIN DE LA MODIFICACIÓN ---
 
         document.addEventListener('DOMContentLoaded', () => {
             setInitialDateTime();
@@ -260,7 +270,7 @@
                 const [photoResult1, photoResult2, photoResult3] = await Promise.all(filePromises);
 
                 const formData = {
-                    fechaNV: new Date().toISOString(),
+                    fechaNV: new Date().toISOString(), // <-- IMPORTANTE: Se envía la hora exacta del clic en formato universal (UTC)
                     numeroNV: document.getElementById('numeroNV').value.trim(),
                     turnoNV: document.getElementById('turnoNV').value.trim(),
                     vendedorNV: document.getElementById('vendedorNV').value.trim(),
