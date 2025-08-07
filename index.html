@@ -18,7 +18,16 @@
         .form-group label.required::after { content: " *"; color: #ef4444; }
         .form-group input, .form-group select, .form-group textarea { padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; transition: border-color 0.3s; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1); }
-        .form-group input:read-only { background-color: #e9ecef; cursor: not-allowed; }
+        
+        /* --- INICIO DE LA MODIFICACIÓN --- */
+        .form-group input:read-only {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+            /* Esta línea evita que los navegadores móviles abran el selector de fecha */
+            pointer-events: none;
+        }
+        /* --- FIN DE LA MODIFICACIÓN --- */
+
         .form-group textarea { min-height: 80px; resize: vertical; }
         .btn { display: inline-block; width: 100%; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s; text-align: center; }
         .btn-primary { background-color: #28a745; color: white; }
@@ -161,8 +170,7 @@
             const { input, preview, label } = fileConfig;
             const file = input.files[0];
             
-            // Limpiar vista previa anterior
-            preview.innerHTML = '';
+            preview.innerHTML = ''; // Limpiar vista previa anterior
             
             if (file) {
                 const small = document.createElement('small');
@@ -217,8 +225,8 @@
                 config.input.addEventListener('change', () => previewFile(config));
                 config.preview.addEventListener('click', (e) => {
                     if (e.target.classList.contains('remove-photo-btn')) {
-                        config.input.value = ''; // Limpia el input de archivo
-                        previewFile(config); // Actualiza la vista previa para mostrar el estado por defecto
+                        config.input.value = '';
+                        previewFile(config);
                     }
                 });
             });
@@ -252,10 +260,6 @@
                 const [photoResult1, photoResult2, photoResult3] = await Promise.all(filePromises);
 
                 const formData = {
-                    // El campo 'fechaNV' del formulario solo se usa para mostrar la fecha al usuario.
-                    // Para el envío, creamos un nuevo objeto Date en el momento exacto del envío
-                    // y lo convertimos a un string ISO completo (formato UTC).
-                    // Google Sheets lo interpretará y mostrará correctamente en la zona horaria de la hoja.
                     fechaNV: new Date().toISOString(),
                     numeroNV: document.getElementById('numeroNV').value.trim(),
                     turnoNV: document.getElementById('turnoNV').value.trim(),
@@ -283,8 +287,8 @@
                 if (result.status === 'success') {
                     showStatus(result.message || '¡Nota de Venta guardada con éxito!', 'success');
                     nvForm.reset();
-                    setInitialDateTime(); // Volver a poner la fecha y hora después de resetear
-                    fileInputs.forEach(config => previewFile(config)); // Limpiar previsualizaciones
+                    setInitialDateTime();
+                    fileInputs.forEach(config => previewFile(config));
                 } else {
                     throw new Error(result.message || 'Ocurrió un error desconocido en el servidor.');
                 }
