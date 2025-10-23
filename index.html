@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; color: #333; line-height: 1.6; }
-        .container { max-width: 900px; margin: 20px auto; padding: 20px; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
         .header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
         .header h1 { font-size: 2rem; margin-bottom: 10px; }
         .form-section { background: white; border-radius: 10px; padding: 30px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -39,10 +39,52 @@
         .preview-container img { display: block; max-width: 100%; max-height: 180px; height: auto; object-fit: contain; }
         .preview-container small { color: #666; }
         .remove-photo-btn { position: absolute; top: 5px; right: 5px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center; font-family: monospace; }
+        
+        /* Estilos para carga masiva */
+        .mass-load-selector { 
+            background: linear-gradient(135deg, #17a2b8, #138496); 
+            color: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            text-align: center;
+        }
+        .mass-load-selector label { 
+            font-size: 1.1rem; 
+            font-weight: 600; 
+            margin-right: 10px; 
+            color: white;
+        }
+        .mass-load-selector select { 
+            padding: 8px 15px; 
+            border-radius: 6px; 
+            border: 2px solid white; 
+            font-size: 1rem; 
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .registro-item { 
+            border: 3px solid #007bff; 
+            border-radius: 10px; 
+            padding: 25px; 
+            margin-bottom: 25px; 
+            background: #f8f9fa;
+            position: relative;
+        }
+        .registro-item h3 { 
+            color: #007bff; 
+            margin-bottom: 20px; 
+            font-size: 1.3rem;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+        }
+        
         @media (max-width: 768px) {
             .container { padding: 10px; }
             .header h1 { font-size: 1.5rem; }
             .form-section { padding: 20px; }
+            .registro-item { padding: 15px; }
         }
     </style>
 </head>
@@ -54,6 +96,18 @@
         </div>
 
         <div class="form-section">
+            <!-- SELECTOR DE CANTIDAD DE REGISTROS -->
+            <div class="mass-load-selector">
+                <label for="cantidadRegistros">¿Cuántas notas de venta quieres registrar?</label>
+                <select id="cantidadRegistros">
+                    <option value="1">1 Registro (Individual)</option>
+                    <option value="2">2 Registros (Carga Masiva)</option>
+                    <option value="3">3 Registros (Carga Masiva)</option>
+                    <option value="4">4 Registros (Carga Masiva)</option>
+                    <option value="5">5 Registros (Carga Masiva)</option>
+                </select>
+            </div>
+
             <form id="nvForm" novalidate>
                 <div class="form-group full-width" style="background-color: #eef7ff; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
                     <label for="ejecutor" class="required">Tu Nombre (Ejecutor)</label>
@@ -65,66 +119,13 @@
                     </select>
                 </div>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="fechaNV" class="required">Fecha y Hora de Registro</label>
-                        <input type="datetime-local" id="fechaNV" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="numeroNV" class="required">Número Nota Venta</label>
-                        <input type="text" id="numeroNV" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="turnoNV" class="required">Turno</label>
-                        <input type="text" id="turnoNV" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="vendedorNV" class="required">Vendedor</label>
-                        <input type="text" id="vendedorNV" required>
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="statusNV" class="required">Status</label>
-                        <select id="statusNV" required>
-                            <option value="">-- Seleccione un Status --</option>
-                            <option value="PAGADO">PAGADO</option>
-                            <option value="POR PAGAR">POR PAGAR</option>
-                            <option value="OTROS">OTROS</option>
-                        </select>
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="observacionesNV">Observaciones (Opcional)</label>
-                        <textarea id="observacionesNV"></textarea>
-                    </div>
-                </div>
+                <!-- CONTENEDOR PARA LOS REGISTROS DINÁMICOS -->
+                <div id="registrosContainer"></div>
 
-                <div style="margin-top: 30px; margin-bottom: 30px;">
-                    <button type="submit" id="submitButton" class="btn btn-primary">Guardar Nota de Venta</button>
-                </div>
-
-                <h3 style="text-align: center; border-top: 1px solid #eee; padding-top: 20px; margin-bottom: 20px; color: #333;">Adjuntar Fotos</h3>
-                
-                <div class="form-grid" style="gap: 25px;">
-                    <div class="form-group file-input-group">
-                        <label for="photoNV1" class="required">Foto Nota de Venta 1</label>
-                        <input type="file" id="photoNV1" accept="image/*" required>
-                        <div id="previewNV1" class="preview-container">
-                            <small>Previsualización Foto 1</small>
-                        </div>
-                    </div>
-                    <div class="form-group file-input-group">
-                        <label for="photoNV2">Foto Nota de Venta 2 (Opcional)</label>
-                        <input type="file" id="photoNV2" accept="image/*">
-                        <div id="previewNV2" class="preview-container">
-                            <small>Previsualización Foto 2</small>
-                        </div>
-                    </div>
-                    <div class="form-group file-input-group">
-                        <label for="photoNV3">Foto Nota de Venta 3 (Opcional)</label>
-                        <input type="file" id="photoNV3" accept="image/*">
-                        <div id="previewNV3" class="preview-container">
-                            <small>Previsualización Foto 3</small>
-                        </div>
-                    </div>
+                <div style="margin-top: 30px; margin-bottom: 20px;">
+                    <button type="submit" id="submitButton" class="btn btn-primary">
+                        Guardar Nota(s) de Venta
+                    </button>
                 </div>
             </form>
             <div id="statusMessage" class="status-message"></div>
@@ -133,21 +134,16 @@
 
     <script>
         // --- CONFIGURACIÓN ---
-        // ⚠️ ¡IMPORTANTE! REEMPLAZA ESTA URL CON LA URL DE TU PROPIA APLICACIÓN WEB DE GOOGLE APPS SCRIPT
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw87DRQRG8fMqJs3Gb5g482GbuW0tz0_tBYF_p4rzpdXyVZCbbq6L0LkAADO0XSWZJy/exec';
 
         // --- ELEMENTOS DEL DOM ---
         const nvForm = document.getElementById('nvForm');
         const submitButton = document.getElementById('submitButton');
         const statusMessage = document.getElementById('statusMessage');
+        const cantidadRegistrosSelect = document.getElementById('cantidadRegistros');
+        const registrosContainer = document.getElementById('registrosContainer');
 
-        const fileInputs = [
-            { id: 'photoNV1', input: document.getElementById('photoNV1'), preview: document.getElementById('previewNV1'), label: 'Foto 1' },
-            { id: 'photoNV2', input: document.getElementById('photoNV2'), preview: document.getElementById('previewNV2'), label: 'Foto 2' },
-            { id: 'photoNV3', input: document.getElementById('photoNV3'), preview: document.getElementById('previewNV3'), label: 'Foto 3' }
-        ];
-
-        // --- FUNCIONES DE UTILIDAD ---
+        // --- FUNCIONES DE UI ---
         function showStatus(message, type = 'loading') {
             statusMessage.textContent = message;
             statusMessage.className = `status-message ${type}`;
@@ -158,16 +154,108 @@
             statusMessage.style.display = 'none';
         }
 
-        function toggleSubmitButton(disabled, text = 'Guardar Nota de Venta') {
-            submitButton.disabled = disabled;
-            submitButton.textContent = disabled ? 'Procesando...' : text;
+        function toggleSubmitButton(isDisabled) {
+            submitButton.disabled = isDisabled;
+            submitButton.textContent = isDisabled ? 'Procesando...' : 'Guardar Nota(s) de Venta';
         }
 
-        function previewFile(fileConfig) {
-            const { input, preview, label } = fileConfig;
+        // --- FUNCIÓN PARA CREAR UN REGISTRO ---
+        function crearRegistro(numero) {
+            return `
+                <div class="registro-item" id="registro${numero}">
+                    <h3>📋 Nota de Venta ${numero}</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="fechaNV${numero}" class="required">Fecha y Hora de Registro</label>
+                            <input type="datetime-local" id="fechaNV${numero}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="numeroNV${numero}" class="required">Número Nota Venta</label>
+                            <input type="text" id="numeroNV${numero}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="turnoNV${numero}" class="required">Turno</label>
+                            <input type="text" id="turnoNV${numero}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vendedorNV${numero}" class="required">Vendedor</label>
+                            <input type="text" id="vendedorNV${numero}" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="statusNV${numero}" class="required">Status</label>
+                            <select id="statusNV${numero}" required>
+                                <option value="">-- Seleccione un Status --</option>
+                                <option value="PAGADO">PAGADO</option>
+                                <option value="POR PAGAR">POR PAGAR</option>
+                                <option value="OTROS">OTROS</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="observacionesNV${numero}">Observaciones (Opcional)</label>
+                            <textarea id="observacionesNV${numero}"></textarea>
+                        </div>
+                    </div>
+
+                    <h4 style="text-align: center; border-top: 1px solid #ccc; padding-top: 20px; margin: 20px 0; color: #555;">📸 Adjuntar Fotos</h4>
+                    
+                    <div class="form-grid" style="gap: 25px;">
+                        <div class="form-group file-input-group">
+                            <label for="photoNV${numero}_1" class="required">Foto Nota de Venta 1</label>
+                            <input type="file" id="photoNV${numero}_1" accept="image/*" required>
+                            <div id="previewNV${numero}_1" class="preview-container">
+                                <small>Previsualización Foto 1</small>
+                            </div>
+                        </div>
+                        <div class="form-group file-input-group">
+                            <label for="photoNV${numero}_2">Foto Nota de Venta 2 (Opcional)</label>
+                            <input type="file" id="photoNV${numero}_2" accept="image/*">
+                            <div id="previewNV${numero}_2" class="preview-container">
+                                <small>Previsualización Foto 2</small>
+                            </div>
+                        </div>
+                        <div class="form-group file-input-group">
+                            <label for="photoNV${numero}_3">Foto Nota de Venta 3 (Opcional)</label>
+                            <input type="file" id="photoNV${numero}_3" accept="image/*">
+                            <div id="previewNV${numero}_3" class="preview-container">
+                                <small>Previsualización Foto 3</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- FUNCIÓN PARA ACTUALIZAR REGISTROS ---
+        function actualizarRegistros() {
+            const cantidad = parseInt(cantidadRegistrosSelect.value);
+            registrosContainer.innerHTML = '';
+            
+            for (let i = 1; i <= cantidad; i++) {
+                registrosContainer.innerHTML += crearRegistro(i);
+            }
+            
+            // Inicializar fecha y hora para cada registro
+            for (let i = 1; i <= cantidad; i++) {
+                setInitialDateTime(i);
+                inicializarPrevisualizaciones(i);
+            }
+            
+            // Actualizar texto del botón
+            if (cantidad > 1) {
+                submitButton.textContent = `Guardar ${cantidad} Notas de Venta`;
+            } else {
+                submitButton.textContent = 'Guardar Nota de Venta';
+            }
+        }
+
+        // --- FUNCIÓN PARA PREVISUALIZACIÓN DE FOTOS ---
+        function previewFile(registroNum, fotoNum) {
+            const input = document.getElementById(`photoNV${registroNum}_${fotoNum}`);
+            const preview = document.getElementById(`previewNV${registroNum}_${fotoNum}`);
             const file = input.files[0];
             
-            preview.innerHTML = ''; // Limpiar vista previa anterior
+            preview.innerHTML = '';
             
             if (file) {
                 const small = document.createElement('small');
@@ -176,16 +264,34 @@
 
                 const reader = new FileReader();
                 reader.onload = e => {
-                    preview.innerHTML = `<img src="${e.target.result}" alt="Previsualización"><button type="button" class="remove-photo-btn" title="Quitar ${label}" style="display:flex;">X</button>`;
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Previsualización"><button type="button" class="remove-photo-btn" title="Quitar foto" style="display:flex;">X</button>`;
                 };
                 reader.readAsDataURL(file);
             } else {
                 const small = document.createElement('small');
-                small.textContent = `Previsualización ${label}`;
+                small.textContent = `Previsualización Foto ${fotoNum}`;
                 preview.appendChild(small);
             }
         }
-        
+
+        function inicializarPrevisualizaciones(registroNum) {
+            for (let fotoNum = 1; fotoNum <= 3; fotoNum++) {
+                const input = document.getElementById(`photoNV${registroNum}_${fotoNum}`);
+                const preview = document.getElementById(`previewNV${registroNum}_${fotoNum}`);
+                
+                if (input && preview) {
+                    input.addEventListener('change', () => previewFile(registroNum, fotoNum));
+                    preview.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('remove-photo-btn')) {
+                            input.value = '';
+                            previewFile(registroNum, fotoNum);
+                        }
+                    });
+                }
+            }
+        }
+
+        // --- FUNCIÓN PARA LEER ARCHIVO COMO BASE64 ---
         function readFileAsBase64(file) {
             return new Promise((resolve, reject) => {
                 if (!file) return resolve(null);
@@ -207,41 +313,73 @@
             });
         }
 
-        // --- LÓGICA PRINCIPAL ---
-
-        // --- INICIO DE LA MODIFICACIÓN ---
-        function setInitialDateTime() {
-            const now = new Date(); // Obtiene la fecha y hora local actual
-
-            // Construimos manualmente el formato 'YYYY-MM-DDTHH:MM' que el input necesita
+        // --- FUNCIÓN PARA ESTABLECER FECHA Y HORA INICIAL ---
+        function setInitialDateTime(registroNum) {
+            const now = new Date();
             const year = now.getFullYear();
-            // getMonth() es base 0 (Enero=0), por eso sumamos 1. padStart asegura 2 dígitos (ej. 08)
             const month = (now.getMonth() + 1).toString().padStart(2, '0');
             const day = now.getDate().toString().padStart(2, '0');
             const hours = now.getHours().toString().padStart(2, '0');
             const minutes = now.getMinutes().toString().padStart(2, '0');
-
-            // Este es el formato exacto requerido por <input type="datetime-local">
             const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
             
-            document.getElementById('fechaNV').value = formattedDateTime;
+            const fechaInput = document.getElementById(`fechaNV${registroNum}`);
+            if (fechaInput) {
+                fechaInput.value = formattedDateTime;
+            }
         }
-        // --- FIN DE LA MODIFICACIÓN ---
 
+        // --- FUNCIÓN PARA RECOPILAR DATOS DE UN REGISTRO ---
+        async function recopilarDatosRegistro(registroNum) {
+            const numeroNV = document.getElementById(`numeroNV${registroNum}`).value.trim();
+            const turnoNV = document.getElementById(`turnoNV${registroNum}`).value.trim();
+            const vendedorNV = document.getElementById(`vendedorNV${registroNum}`).value.trim();
+            const statusNV = document.getElementById(`statusNV${registroNum}`).value;
+            const observacionesNV = document.getElementById(`observacionesNV${registroNum}`).value.trim();
+            
+            // Validar campos obligatorios
+            if (!numeroNV || !turnoNV || !vendedorNV || !statusNV) {
+                throw new Error(`Registro ${registroNum}: Faltan campos obligatorios`);
+            }
+            
+            // Validar que tenga al menos la foto 1
+            const photo1Input = document.getElementById(`photoNV${registroNum}_1`);
+            if (!photo1Input.files[0]) {
+                throw new Error(`Registro ${registroNum}: La foto 1 es obligatoria`);
+            }
+            
+            // Leer fotos
+            const photoPromises = [
+                readFileAsBase64(document.getElementById(`photoNV${registroNum}_1`).files[0]),
+                readFileAsBase64(document.getElementById(`photoNV${registroNum}_2`).files[0]),
+                readFileAsBase64(document.getElementById(`photoNV${registroNum}_3`).files[0])
+            ];
+            
+            const [photoInfo1, photoInfo2, photoInfo3] = await Promise.all(photoPromises);
+            
+            return {
+                fechaNV: new Date().toISOString(),
+                numeroNV,
+                turnoNV,
+                vendedorNV,
+                statusNV,
+                observacionesNV,
+                photoInfo1,
+                photoInfo2,
+                photoInfo3
+            };
+        }
+
+        // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
-            setInitialDateTime();
-
-            fileInputs.forEach(config => {
-                config.input.addEventListener('change', () => previewFile(config));
-                config.preview.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('remove-photo-btn')) {
-                        config.input.value = '';
-                        previewFile(config);
-                    }
-                });
-            });
+            actualizarRegistros();
         });
 
+        cantidadRegistrosSelect.addEventListener('change', () => {
+            actualizarRegistros();
+        });
+
+        // --- ENVÍO DEL FORMULARIO ---
         nvForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             hideStatus();
@@ -251,64 +389,67 @@
                 return;
             }
 
-            const requiredFields = ['ejecutor', 'numeroNV', 'turnoNV', 'vendedorNV', 'statusNV', 'photoNV1'];
-            for (const fieldId of requiredFields) {
-                const field = document.getElementById(fieldId);
-                const label = field.labels[0].textContent.replace(' *', '');
-                if (!field.value) {
-                    showStatus(`Error: El campo "${label}" es obligatorio.`, 'error');
-                    field.focus();
-                    return;
-                }
+            // Validar que se haya seleccionado un ejecutor
+            const ejecutor = document.getElementById('ejecutor').value;
+            if (!ejecutor) {
+                showStatus('Error: Debes seleccionar un ejecutor.', 'error');
+                return;
             }
+
+            const cantidad = parseInt(cantidadRegistrosSelect.value);
             
             toggleSubmitButton(true);
-            showStatus('Preparando y leyendo archivos...', 'loading');
+            showStatus(`Preparando ${cantidad} registro(s)... Esto puede tardar un momento.`, 'loading');
 
             try {
-                const filePromises = fileInputs.map(config => readFileAsBase64(config.input.files[0]));
-                const [photoResult1, photoResult2, photoResult3] = await Promise.all(filePromises);
+                // Recopilar datos de todos los registros
+                const registrosPromises = [];
+                for (let i = 1; i <= cantidad; i++) {
+                    registrosPromises.push(recopilarDatosRegistro(i));
+                }
+                
+                showStatus(`Leyendo archivos de ${cantidad} registro(s)...`, 'loading');
+                const registrosData = await Promise.all(registrosPromises);
+                
+                // Agregar el ejecutor a cada registro
+                registrosData.forEach(registro => {
+                    registro.user = ejecutor;
+                });
+                
+                showStatus(`Enviando ${cantidad} registro(s) al servidor...`, 'loading');
 
-                const formData = {
-                    fechaNV: new Date().toISOString(), // <-- IMPORTANTE: Se envía la hora exacta del clic en formato universal (UTC)
-                    numeroNV: document.getElementById('numeroNV').value.trim(),
-                    turnoNV: document.getElementById('turnoNV').value.trim(),
-                    vendedorNV: document.getElementById('vendedorNV').value.trim(),
-                    statusNV: document.getElementById('statusNV').value,
-                    observacionesNV: document.getElementById('observacionesNV').value.trim(),
-                    user: document.getElementById('ejecutor').value.trim(),
-                    photoInfo1: photoResult1,
-                    photoInfo2: photoResult2,
-                    photoInfo3: photoResult3
-                };
-
-                showStatus('Enviando datos al servidor... Esto puede tardar un momento.', 'loading');
-
+                // Enviar todos los registros de una vez
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
                     mode: 'cors',
                     redirect: 'follow',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify({
+                        registros: registrosData,
+                        cantidadRegistros: cantidad
+                    })
                 });
                 
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    showStatus(result.message || '¡Nota de Venta guardada con éxito!', 'success');
+                    showStatus(
+                        result.message || `¡${cantidad} nota(s) de venta guardada(s) con éxito!`, 
+                        'success'
+                    );
                     nvForm.reset();
-                    setInitialDateTime();
-                    fileInputs.forEach(config => previewFile(config));
+                    cantidadRegistrosSelect.value = '1';
+                    actualizarRegistros();
                 } else {
                     throw new Error(result.message || 'Ocurrió un error desconocido en el servidor.');
                 }
 
             } catch (error) {
-                showStatus(`Error Crítico: ${error.message}`, 'error');
+                showStatus(`Error: ${error.message}`, 'error');
                 console.error('Error en el proceso de envío:', error);
             } finally {
                 toggleSubmitButton(false);
-                setTimeout(hideStatus, 8000);
+                setTimeout(hideStatus, 10000);
             }
         });
     </script>
