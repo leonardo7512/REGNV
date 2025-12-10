@@ -6,7 +6,7 @@
     <title>Registrar Nota de Venta - FUCAS SPA</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; color: #333; line-height: 1.6; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; color: #333; line-height: 1.6; padding-bottom: 100px; }
         .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
         .header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
         .header h1 { font-size: 2rem; margin-bottom: 10px; }
@@ -26,10 +26,54 @@
         }
 
         .form-group textarea { min-height: 80px; resize: vertical; }
+        
+        /* Input personalizado para "Otros" */
+        .input-otros {
+            margin-top: 8px;
+            display: none;
+            padding: 10px;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            background-color: #fff9e6;
+        }
+        .input-otros.show {
+            display: block;
+        }
+        
         .btn { display: inline-block; width: 100%; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s; text-align: center; }
         .btn-primary { background-color: #28a745; color: white; }
-        .btn-primary:hover:not(:disabled) { background-color: #218838; }
+        .btn-primary:hover:not(:disabled) { background-color: #218838; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4); }
         .btn:disabled { background-color: #cccccc; cursor: not-allowed; }
+        
+        /* BOTÓN FLOTANTE */
+        .floating-button-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            z-index: 1000;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .floating-button-container .btn {
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .floating-button-container {
+                left: 10px;
+                right: 10px;
+                max-width: none;
+            }
+        }
+        
         .status-message { padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; display: none; }
         .status-message.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .status-message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
@@ -85,6 +129,7 @@
             .header h1 { font-size: 1.5rem; }
             .form-section { padding: 20px; }
             .registro-item { padding: 15px; }
+            body { padding-bottom: 120px; }
         }
     </style>
 </head>
@@ -115,21 +160,25 @@
                         <option value="" disabled selected>-- Selecciona tu usuario --</option>
                         <option value="JFG">JFG</option>
                         <option value="LCT">LCT</option>
-                        <option value="DMN">DMN</option>
+                        <option value="MMC">MMC</option>
+                        <option value="OTRO">Otro (especificar)</option>
                     </select>
+                    <input type="text" id="ejecutorOtro" class="input-otros" placeholder="Especifica el ejecutor">
                 </div>
 
                 <!-- CONTENEDOR PARA LOS REGISTROS DINÁMICOS -->
                 <div id="registrosContainer"></div>
 
-                <div style="margin-top: 30px; margin-bottom: 20px;">
-                    <button type="submit" id="submitButton" class="btn btn-primary">
-                        Guardar Nota(s) de Venta
-                    </button>
-                </div>
             </form>
             <div id="statusMessage" class="status-message"></div>
         </div>
+    </div>
+
+    <!-- BOTÓN FLOTANTE -->
+    <div class="floating-button-container">
+        <button type="submit" form="nvForm" id="submitButton" class="btn btn-primary">
+            💾 Guardar Nota de Venta
+        </button>
     </div>
 
     <script>
@@ -142,6 +191,20 @@
         const statusMessage = document.getElementById('statusMessage');
         const cantidadRegistrosSelect = document.getElementById('cantidadRegistros');
         const registrosContainer = document.getElementById('registrosContainer');
+        const ejecutorSelect = document.getElementById('ejecutor');
+        const ejecutorOtro = document.getElementById('ejecutorOtro');
+
+        // --- MANEJO DE "OTRO" EN EJECUTOR ---
+        ejecutorSelect.addEventListener('change', () => {
+            if (ejecutorSelect.value === 'OTRO') {
+                ejecutorOtro.classList.add('show');
+                ejecutorOtro.required = true;
+            } else {
+                ejecutorOtro.classList.remove('show');
+                ejecutorOtro.required = false;
+                ejecutorOtro.value = '';
+            }
+        });
 
         // --- FUNCIONES DE UI ---
         function showStatus(message, type = 'loading') {
@@ -156,7 +219,7 @@
 
         function toggleSubmitButton(isDisabled) {
             submitButton.disabled = isDisabled;
-            submitButton.textContent = isDisabled ? 'Procesando...' : 'Guardar Nota(s) de Venta';
+            submitButton.textContent = isDisabled ? '⏳ Procesando...' : '💾 Guardar Nota(s) de Venta';
         }
 
         // --- FUNCIÓN PARA CREAR UN REGISTRO ---
@@ -178,10 +241,39 @@
                             <label for="turnoNV${numero}" class="required">Turno</label>
                             <input type="text" id="turnoNV${numero}" required>
                         </div>
+                        
+                        <!-- VENDEDOR CON OPCIONES -->
                         <div class="form-group">
                             <label for="vendedorNV${numero}" class="required">Vendedor</label>
-                            <input type="text" id="vendedorNV${numero}" required>
+                            <select id="vendedorNV${numero}" required>
+                                <option value="">-- Seleccione un Vendedor --</option>
+                                <option value="AF">AF</option>
+                                <option value="YR">YR</option>
+                                <option value="LC">LC</option>
+                                <option value="JG">JG</option>
+                                <option value="LR">LR</option>
+                                <option value="ADM">ADM</option>
+                                <option value="OTRO">Otro (especificar)</option>
+                            </select>
+                            <input type="text" id="vendedorNV${numero}_otro" class="input-otros" placeholder="Especifica el vendedor">
                         </div>
+                        
+                        <!-- FORMA DE PAGO -->
+                        <div class="form-group">
+                            <label for="formaPagoNV${numero}" class="required">Forma de Pago</label>
+                            <select id="formaPagoNV${numero}" required>
+                                <option value="">-- Seleccione Forma de Pago --</option>
+                                <option value="TEF">TEF</option>
+                                <option value="MP">MP</option>
+                                <option value="GETNET">GETNET</option>
+                                <option value="EFECTIVO CC">EFECTIVO CC (especificar número)</option>
+                                <option value="CREDITO">CREDITO</option>
+                                <option value="C.AGIL">C.AGIL</option>
+                                <option value="OTRO">Otro (especificar)</option>
+                            </select>
+                            <input type="text" id="formaPagoNV${numero}_detalle" class="input-otros" placeholder="Ej: CC1, CC80, CC96 u otro detalle">
+                        </div>
+                        
                         <div class="form-group full-width">
                             <label for="statusNV${numero}" class="required">Status</label>
                             <select id="statusNV${numero}" required>
@@ -239,219 +331,45 @@
             for (let i = 1; i <= cantidad; i++) {
                 setInitialDateTime(i);
                 inicializarPrevisualizaciones(i);
+                configurarCamposCondicionales(i);
             }
             
             // Actualizar texto del botón
             if (cantidad > 1) {
-                submitButton.textContent = `Guardar ${cantidad} Notas de Venta`;
+                submitButton.innerHTML = `💾 Guardar ${cantidad} Notas de Venta`;
             } else {
-                submitButton.textContent = 'Guardar Nota de Venta';
+                submitButton.innerHTML = '💾 Guardar Nota de Venta';
             }
         }
 
-        // --- FUNCIÓN PARA PREVISUALIZACIÓN DE FOTOS ---
-        function previewFile(registroNum, fotoNum) {
-            const input = document.getElementById(`photoNV${registroNum}_${fotoNum}`);
-            const preview = document.getElementById(`previewNV${registroNum}_${fotoNum}`);
-            const file = input.files[0];
+        // --- CONFIGURAR CAMPOS CONDICIONALES (VENDEDOR Y FORMA DE PAGO) ---
+        function configurarCamposCondicionales(registroNum) {
+            // Vendedor
+            const vendedorSelect = document.getElementById(`vendedorNV${registroNum}`);
+            const vendedorOtro = document.getElementById(`vendedorNV${registroNum}_otro`);
             
-            preview.innerHTML = '';
-            
-            if (file) {
-                const small = document.createElement('small');
-                small.textContent = 'Cargando...';
-                preview.appendChild(small);
-
-                const reader = new FileReader();
-                reader.onload = e => {
-                    preview.innerHTML = `<img src="${e.target.result}" alt="Previsualización"><button type="button" class="remove-photo-btn" title="Quitar foto" style="display:flex;">X</button>`;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                const small = document.createElement('small');
-                small.textContent = `Previsualización Foto ${fotoNum}`;
-                preview.appendChild(small);
-            }
-        }
-
-        function inicializarPrevisualizaciones(registroNum) {
-            for (let fotoNum = 1; fotoNum <= 3; fotoNum++) {
-                const input = document.getElementById(`photoNV${registroNum}_${fotoNum}`);
-                const preview = document.getElementById(`previewNV${registroNum}_${fotoNum}`);
-                
-                if (input && preview) {
-                    input.addEventListener('change', () => previewFile(registroNum, fotoNum));
-                    preview.addEventListener('click', (e) => {
-                        if (e.target.classList.contains('remove-photo-btn')) {
-                            input.value = '';
-                            previewFile(registroNum, fotoNum);
-                        }
-                    });
-                }
-            }
-        }
-
-        // --- FUNCIÓN PARA LEER ARCHIVO COMO BASE64 ---
-        function readFileAsBase64(file) {
-            return new Promise((resolve, reject) => {
-                if (!file) return resolve(null);
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    if (event.target.readyState === FileReader.DONE && typeof event.target.result === 'string') {
-                        const base64String = event.target.result.split(',')[1];
-                        resolve({
-                            fileName: file.name,
-                            mimeType: file.type || 'application/octet-stream',
-                            base64Data: base64String
-                        });
-                    } else {
-                        reject(new Error(`Error al leer el archivo ${file.name}`));
-                    }
-                };
-                reader.onerror = (error) => reject(new Error(`Error en FileReader: ${error.message}`));
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // --- FUNCIÓN PARA ESTABLECER FECHA Y HORA INICIAL ---
-        function setInitialDateTime(registroNum) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            const day = now.getDate().toString().padStart(2, '0');
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-            
-            const fechaInput = document.getElementById(`fechaNV${registroNum}`);
-            if (fechaInput) {
-                fechaInput.value = formattedDateTime;
-            }
-        }
-
-        // --- FUNCIÓN PARA RECOPILAR DATOS DE UN REGISTRO ---
-        async function recopilarDatosRegistro(registroNum) {
-            const numeroNV = document.getElementById(`numeroNV${registroNum}`).value.trim();
-            const turnoNV = document.getElementById(`turnoNV${registroNum}`).value.trim();
-            const vendedorNV = document.getElementById(`vendedorNV${registroNum}`).value.trim();
-            const statusNV = document.getElementById(`statusNV${registroNum}`).value;
-            const observacionesNV = document.getElementById(`observacionesNV${registroNum}`).value.trim();
-            
-            // Validar campos obligatorios
-            if (!numeroNV || !turnoNV || !vendedorNV || !statusNV) {
-                throw new Error(`Registro ${registroNum}: Faltan campos obligatorios`);
-            }
-            
-            // Validar que tenga al menos la foto 1
-            const photo1Input = document.getElementById(`photoNV${registroNum}_1`);
-            if (!photo1Input.files[0]) {
-                throw new Error(`Registro ${registroNum}: La foto 1 es obligatoria`);
-            }
-            
-            // Leer fotos
-            const photoPromises = [
-                readFileAsBase64(document.getElementById(`photoNV${registroNum}_1`).files[0]),
-                readFileAsBase64(document.getElementById(`photoNV${registroNum}_2`).files[0]),
-                readFileAsBase64(document.getElementById(`photoNV${registroNum}_3`).files[0])
-            ];
-            
-            const [photoInfo1, photoInfo2, photoInfo3] = await Promise.all(photoPromises);
-            
-            return {
-                fechaNV: new Date().toISOString(),
-                numeroNV,
-                turnoNV,
-                vendedorNV,
-                statusNV,
-                observacionesNV,
-                photoInfo1,
-                photoInfo2,
-                photoInfo3
-            };
-        }
-
-        // --- INICIALIZACIÓN ---
-        document.addEventListener('DOMContentLoaded', () => {
-            actualizarRegistros();
-        });
-
-        cantidadRegistrosSelect.addEventListener('change', () => {
-            actualizarRegistros();
-        });
-
-        // --- ENVÍO DEL FORMULARIO ---
-        nvForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            hideStatus();
-
-            if (WEB_APP_URL.includes('URL_DE_TU_APLICACION')) {
-                showStatus('Error: La URL de la aplicación web no ha sido configurada en el script.', 'error');
-                return;
-            }
-
-            // Validar que se haya seleccionado un ejecutor
-            const ejecutor = document.getElementById('ejecutor').value;
-            if (!ejecutor) {
-                showStatus('Error: Debes seleccionar un ejecutor.', 'error');
-                return;
-            }
-
-            const cantidad = parseInt(cantidadRegistrosSelect.value);
-            
-            toggleSubmitButton(true);
-            showStatus(`Preparando ${cantidad} registro(s)... Esto puede tardar un momento.`, 'loading');
-
-            try {
-                // Recopilar datos de todos los registros
-                const registrosPromises = [];
-                for (let i = 1; i <= cantidad; i++) {
-                    registrosPromises.push(recopilarDatosRegistro(i));
-                }
-                
-                showStatus(`Leyendo archivos de ${cantidad} registro(s)...`, 'loading');
-                const registrosData = await Promise.all(registrosPromises);
-                
-                // Agregar el ejecutor a cada registro
-                registrosData.forEach(registro => {
-                    registro.user = ejecutor;
-                });
-                
-                showStatus(`Enviando ${cantidad} registro(s) al servidor...`, 'loading');
-
-                // Enviar todos los registros de una vez
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    redirect: 'follow',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        registros: registrosData,
-                        cantidadRegistros: cantidad
-                    })
-                });
-                
-                const result = await response.json();
-
-                if (result.status === 'success') {
-                    showStatus(
-                        result.message || `¡${cantidad} nota(s) de venta guardada(s) con éxito!`, 
-                        'success'
-                    );
-                    nvForm.reset();
-                    cantidadRegistrosSelect.value = '1';
-                    actualizarRegistros();
+            vendedorSelect.addEventListener('change', () => {
+                if (vendedorSelect.value === 'OTRO') {
+                    vendedorOtro.classList.add('show');
+                    vendedorOtro.required = true;
                 } else {
-                    throw new Error(result.message || 'Ocurrió un error desconocido en el servidor.');
+                    vendedorOtro.classList.remove('show');
+                    vendedorOtro.required = false;
+                    vendedorOtro.value = '';
                 }
+            });
 
-            } catch (error) {
-                showStatus(`Error: ${error.message}`, 'error');
-                console.error('Error en el proceso de envío:', error);
-            } finally {
-                toggleSubmitButton(false);
-                setTimeout(hideStatus, 10000);
-            }
-        });
-    </script>
-</body>
-</html>
+            // Forma de Pago
+            const formaPagoSelect = document.getElementById(`formaPagoNV${registroNum}`);
+            const formaPagoDetalle = document.getElementById(`formaPagoNV${registroNum}_detalle`);
+            
+            formaPagoSelect.addEventListener('change', () => {
+                if (formaPagoSelect.value === 'EFECTIVO CC' || formaPagoSelect.value === 'OTRO') {
+                    formaPagoDetalle.classList.add('show');
+                    formaPagoDetalle.required = true;
+                } else {
+                    formaPagoDetalle.classList.remove('show');
+                    formaPagoDetalle.required = false;
+                    formaPagoDetalle.value = '';
+                }
+            });
