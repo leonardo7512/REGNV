@@ -219,7 +219,7 @@
 
         function toggleSubmitButton(isDisabled) {
             submitButton.disabled = isDisabled;
-            submitButton.textContent = isDisabled ? '⏳ Procesando...' : '💾 Guardar Nota(s) de Venta';
+            submitButton.innerHTML = isDisabled ? '⏳ Procesando...' : '💾 Guardar Nota(s) de Venta';
         }
 
         // --- FUNCIÓN PARA CREAR UN REGISTRO ---
@@ -318,6 +318,101 @@
             `;
         }
 
+        // --- CONFIGURAR CAMPOS CONDICIONALES (VENDEDOR Y FORMA DE PAGO) ---
+        function configurarCamposCondicionales(registroNum) {
+            // Vendedor
+            const vendedorSelect = document.getElementById(`vendedorNV${registroNum}`);
+            const vendedorOtro = document.getElementById(`vendedorNV${registroNum}_otro`);
+            
+            if (vendedorSelect && vendedorOtro) {
+                vendedorSelect.addEventListener('change', () => {
+                    if (vendedorSelect.value === 'OTRO') {
+                        vendedorOtro.classList.add('show');
+                        vendedorOtro.required = true;
+                    } else {
+                        vendedorOtro.classList.remove('show');
+                        vendedorOtro.required = false;
+                        vendedorOtro.value = '';
+                    }
+                });
+            }
+
+            // Forma de Pago
+            const formaPagoSelect = document.getElementById(`formaPagoNV${registroNum}`);
+            const formaPagoDetalle = document.getElementById(`formaPagoNV${registroNum}_detalle`);
+            
+            if (formaPagoSelect && formaPagoDetalle) {
+                formaPagoSelect.addEventListener('change', () => {
+                    if (formaPagoSelect.value === 'EFECTIVO CC' || formaPagoSelect.value === 'OTRO') {
+                        formaPagoDetalle.classList.add('show');
+                        formaPagoDetalle.required = true;
+                    } else {
+                        formaPagoDetalle.classList.remove('show');
+                        formaPagoDetalle.required = false;
+                        formaPagoDetalle.value = '';
+                    }
+                });
+            }
+        }
+
+        // --- FUNCIÓN PARA PREVISUALIZACIÓN DE FOTOS ---
+        function previewFile(registroNum, fotoNum) {
+            const input = document.getElementById(`photoNV${registroNum}_${fotoNum}`);
+            const preview = document.getElementById(`previewNV${registroNum}_${fotoNum}`);
+            const file = input.files[0];
+            
+            preview.innerHTML = '';
+            
+            if (file) {
+                const small = document.createElement('small');
+                small.textContent = 'Cargando...';
+                preview.appendChild(small);
+
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Previsualización"><button type="button" class="remove-photo-btn" title="Quitar foto" style="display:flex;">X</button>`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const small = document.createElement('small');
+                small.textContent = `Previsualización Foto ${fotoNum}`;
+                preview.appendChild(small);
+            }
+        }
+
+        function inicializarPrevisualizaciones(registroNum) {
+            for (let fotoNum = 1; fotoNum <= 3; fotoNum++) {
+                const input = document.getElementById(`photoNV${registroNum}_${fotoNum}`);
+                const preview = document.getElementById(`previewNV${registroNum}_${fotoNum}`);
+                
+                if (input && preview) {
+                    input.addEventListener('change', () => previewFile(registroNum, fotoNum));
+                    preview.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('remove-photo-btn')) {
+                            input.value = '';
+                            previewFile(registroNum, fotoNum);
+                        }
+                    });
+                }
+            }
+        }
+
+        // --- FUNCIÓN PARA ESTABLECER FECHA Y HORA INICIAL ---
+        function setInitialDateTime(registroNum) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+            
+            const fechaInput = document.getElementById(`fechaNV${registroNum}`);
+            if (fechaInput) {
+                fechaInput.value = formattedDateTime;
+            }
+        }
+
         // --- FUNCIÓN PARA ACTUALIZAR REGISTROS ---
         function actualizarRegistros() {
             const cantidad = parseInt(cantidadRegistrosSelect.value);
@@ -342,34 +437,173 @@
             }
         }
 
-        // --- CONFIGURAR CAMPOS CONDICIONALES (VENDEDOR Y FORMA DE PAGO) ---
-        function configurarCamposCondicionales(registroNum) {
-            // Vendedor
-            const vendedorSelect = document.getElementById(`vendedorNV${registroNum}`);
-            const vendedorOtro = document.getElementById(`vendedorNV${registroNum}_otro`);
-            
-            vendedorSelect.addEventListener('change', () => {
-                if (vendedorSelect.value === 'OTRO') {
-                    vendedorOtro.classList.add('show');
-                    vendedorOtro.required = true;
-                } else {
-                    vendedorOtro.classList.remove('show');
-                    vendedorOtro.required = false;
-                    vendedorOtro.value = '';
-                }
+        // --- FUNCIÓN PARA LEER ARCHIVO COMO BASE64 ---
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                if (!file) return resolve(null);
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    if (event.target.readyState === FileReader.DONE && typeof event.target.result === 'string') {
+                        const base64String = event.target.result.split(',')[1];
+                        resolve({
+                            fileName: file.name,
+                            mimeType: file.type || 'application/octet-stream',
+                            base64Data: base64String
+                        });
+                    } else {
+                        reject(new Error(`Error al leer el archivo ${file.name}`));
+                    }
+                };
+                reader.onerror = (error) => reject(new Error(`Error en FileReader: ${error.message}`));
+                reader.readAsDataURL(file);
             });
+        }
 
-            // Forma de Pago
-            const formaPagoSelect = document.getElementById(`formaPagoNV${registroNum}`);
-            const formaPagoDetalle = document.getElementById(`formaPagoNV${registroNum}_detalle`);
+        // --- FUNCIÓN PARA RECOPILAR DATOS DE UN REGISTRO ---
+        async function recopilarDatosRegistro(registroNum) {
+            const numeroNV = document.getElementById(`numeroNV${registroNum}`).value.trim();
+            const turnoNV = document.getElementById(`turnoNV${registroNum}`).value.trim();
+            const statusNV = document.getElementById(`statusNV${registroNum}`).value;
+            const observacionesNV = document.getElementById(`observacionesNV${registroNum}`).value.trim();
             
-            formaPagoSelect.addEventListener('change', () => {
-                if (formaPagoSelect.value === 'EFECTIVO CC' || formaPagoSelect.value === 'OTRO') {
-                    formaPagoDetalle.classList.add('show');
-                    formaPagoDetalle.required = true;
-                } else {
-                    formaPagoDetalle.classList.remove('show');
-                    formaPagoDetalle.required = false;
-                    formaPagoDetalle.value = '';
+            // Obtener vendedor
+            const vendedorSelect = document.getElementById(`vendedorNV${registroNum}`).value;
+            const vendedorOtro = document.getElementById(`vendedorNV${registroNum}_otro`).value.trim();
+            const vendedorNV = vendedorSelect === 'OTRO' ? vendedorOtro : vendedorSelect;
+            
+            // Obtener forma de pago
+            const formaPagoSelect = document.getElementById(`formaPagoNV${registroNum}`).value;
+            const formaPagoDetalle = document.getElementById(`formaPagoNV${registroNum}_detalle`).value.trim();
+            let formaPagoNV = formaPagoSelect;
+            if (formaPagoSelect === 'EFECTIVO CC' && formaPagoDetalle) {
+                formaPagoNV = `EFECTIVO ${formaPagoDetalle}`;
+            } else if (formaPagoSelect === 'OTRO' && formaPagoDetalle) {
+                formaPagoNV = formaPagoDetalle;
+            }
+            
+            // Validar campos obligatorios
+            if (!numeroNV || !turnoNV || !vendedorNV || !formaPagoNV || !statusNV) {
+                throw new Error(`Registro ${registroNum}: Faltan campos obligatorios`);
+            }
+            
+            // Validar que tenga al menos la foto 1
+            const photo1Input = document.getElementById(`photoNV${registroNum}_1`);
+            if (!photo1Input.files[0]) {
+                throw new Error(`Registro ${registroNum}: La foto 1 es obligatoria`);
+            }
+            
+            // Leer fotos
+            const photoPromises = [
+                readFileAsBase64(document.getElementById(`photoNV${registroNum}_1`).files[0]),
+                readFileAsBase64(document.getElementById(`photoNV${registroNum}_2`).files[0]),
+                readFileAsBase64(document.getElementById(`photoNV${registroNum}_3`).files[0])
+            ];
+            
+            const [photoInfo1, photoInfo2, photoInfo3] = await Promise.all(photoPromises);
+            
+            return {
+                fechaNV: new Date().toISOString(),
+                numeroNV,
+                turnoNV,
+                vendedorNV,
+                formaPagoNV,
+                statusNV,
+                observacionesNV,
+                photoInfo1,
+                photoInfo2,
+                photoInfo3
+            };
+        }
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            actualizarRegistros();
+        });
+
+        cantidadRegistrosSelect.addEventListener('change', () => {
+            actualizarRegistros();
+        });
+
+        // --- ENVÍO DEL FORMULARIO ---
+        nvForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            hideStatus();
+
+            if (WEB_APP_URL.includes('URL_DE_TU_APLICACION')) {
+                showStatus('Error: La URL de la aplicación web no ha sido configurada en el script.', 'error');
+                return;
+            }
+
+            // Validar que se haya seleccionado un ejecutor
+            const ejecutorValue = ejecutorSelect.value;
+            let ejecutor = ejecutorValue;
+            if (ejecutorValue === 'OTRO') {
+                ejecutor = ejecutorOtro.value.trim();
+                if (!ejecutor) {
+                    showStatus('Error: Debes especificar el nombre del ejecutor.', 'error');
+                    return;
                 }
-            });
+            } else if (!ejecutorValue) {
+                showStatus('Error: Debes seleccionar un ejecutor.', 'error');
+                return;
+            }
+
+            const cantidad = parseInt(cantidadRegistrosSelect.value);
+            
+            toggleSubmitButton(true);
+            showStatus(`Preparando ${cantidad} registro(s)... Esto puede tardar un momento.`, 'loading');
+
+            try {
+                // Recopilar datos de todos los registros
+                const registrosPromises = [];
+                for (let i = 1; i <= cantidad; i++) {
+                    registrosPromises.push(recopilarDatosRegistro(i));
+                }
+                
+                showStatus(`Leyendo archivos de ${cantidad} registro(s)...`, 'loading');
+                const registrosData = await Promise.all(registrosPromises);
+                
+                // Agregar el ejecutor a cada registro
+                registrosData.forEach(registro => {
+                    registro.user = ejecutor;
+                });
+                
+                showStatus(`Enviando ${cantidad} registro(s) al servidor...`, 'loading');
+
+                // Enviar todos los registros de una vez
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    redirect: 'follow',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        registros: registrosData,
+                        cantidadRegistros: cantidad
+                    })
+                });
+                
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showStatus(
+                        result.message || `¡${cantidad} nota(s) de venta guardada(s) con éxito!`, 
+                        'success'
+                    );
+                    nvForm.reset();
+                    cantidadRegistrosSelect.value = '1';
+                    actualizarRegistros();
+                } else {
+                    throw new Error(result.message || 'Ocurrió un error desconocido en el servidor.');
+                }
+
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+                console.error('Error en el proceso de envío:', error);
+            } finally {
+                toggleSubmitButton(false);
+                setTimeout(hideStatus, 10000);
+            }
+        });
+    </script>
+</body>
+</html>
