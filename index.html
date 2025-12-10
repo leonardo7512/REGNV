@@ -258,34 +258,9 @@
                             <input type="text" id="vendedorNV${numero}_otro" class="input-otros" placeholder="Especifica el vendedor">
                         </div>
                         
-                        <!-- FORMA DE PAGO -->
-                        <div class="form-group">
-                            <label for="formaPagoNV${numero}" class="required">Forma de Pago</label>
-                            <select id="formaPagoNV${numero}" required>
-                                <option value="">-- Seleccione Forma de Pago --</option>
-                                <option value="TEF">TEF</option>
-                                <option value="MP">MP</option>
-                                <option value="GETNET">GETNET</option>
-                                <option value="EFECTIVO CC">EFECTIVO CC (especificar número)</option>
-                                <option value="CREDITO">CREDITO</option>
-                                <option value="C.AGIL">C.AGIL</option>
-                                <option value="OTRO">Otro (especificar)</option>
-                            </select>
-                            <input type="text" id="formaPagoNV${numero}_detalle" class="input-otros" placeholder="Ej: CC1, CC80, CC96 u otro detalle">
-                        </div>
-                        
-                        <div class="form-group full-width">
-                            <label for="statusNV${numero}" class="required">Status</label>
-                            <select id="statusNV${numero}" required>
-                                <option value="">-- Seleccione un Status --</option>
-                                <option value="PAGADO">PAGADO</option>
-                                <option value="POR PAGAR">POR PAGAR</option>
-                                <option value="OTROS">OTROS</option>
-                            </select>
-                        </div>
                         <div class="form-group full-width">
                             <label for="observacionesNV${numero}">Observaciones (Opcional)</label>
-                            <textarea id="observacionesNV${numero}"></textarea>
+                            <textarea id="observacionesNV${numero}" placeholder="Aquí puedes agregar forma de pago, status y otras observaciones..."></textarea>
                         </div>
                     </div>
 
@@ -318,7 +293,7 @@
             `;
         }
 
-        // --- CONFIGURAR CAMPOS CONDICIONALES (VENDEDOR Y FORMA DE PAGO) ---
+        // --- CONFIGURAR CAMPOS CONDICIONALES (VENDEDOR) ---
         function configurarCamposCondicionales(registroNum) {
             // Vendedor
             const vendedorSelect = document.getElementById(`vendedorNV${registroNum}`);
@@ -333,23 +308,6 @@
                         vendedorOtro.classList.remove('show');
                         vendedorOtro.required = false;
                         vendedorOtro.value = '';
-                    }
-                });
-            }
-
-            // Forma de Pago
-            const formaPagoSelect = document.getElementById(`formaPagoNV${registroNum}`);
-            const formaPagoDetalle = document.getElementById(`formaPagoNV${registroNum}_detalle`);
-            
-            if (formaPagoSelect && formaPagoDetalle) {
-                formaPagoSelect.addEventListener('change', () => {
-                    if (formaPagoSelect.value === 'EFECTIVO CC' || formaPagoSelect.value === 'OTRO') {
-                        formaPagoDetalle.classList.add('show');
-                        formaPagoDetalle.required = true;
-                    } else {
-                        formaPagoDetalle.classList.remove('show');
-                        formaPagoDetalle.required = false;
-                        formaPagoDetalle.value = '';
                     }
                 });
             }
@@ -463,7 +421,6 @@
         async function recopilarDatosRegistro(registroNum) {
             const numeroNV = document.getElementById(`numeroNV${registroNum}`).value.trim();
             const turnoNV = document.getElementById(`turnoNV${registroNum}`).value.trim();
-            const statusNV = document.getElementById(`statusNV${registroNum}`).value;
             const observacionesNV = document.getElementById(`observacionesNV${registroNum}`).value.trim();
             
             // Obtener vendedor
@@ -471,18 +428,8 @@
             const vendedorOtro = document.getElementById(`vendedorNV${registroNum}_otro`).value.trim();
             const vendedorNV = vendedorSelect === 'OTRO' ? vendedorOtro : vendedorSelect;
             
-            // Obtener forma de pago
-            const formaPagoSelect = document.getElementById(`formaPagoNV${registroNum}`).value;
-            const formaPagoDetalle = document.getElementById(`formaPagoNV${registroNum}_detalle`).value.trim();
-            let formaPagoNV = formaPagoSelect;
-            if (formaPagoSelect === 'EFECTIVO CC' && formaPagoDetalle) {
-                formaPagoNV = `EFECTIVO ${formaPagoDetalle}`;
-            } else if (formaPagoSelect === 'OTRO' && formaPagoDetalle) {
-                formaPagoNV = formaPagoDetalle;
-            }
-            
             // Validar campos obligatorios
-            if (!numeroNV || !turnoNV || !vendedorNV || !formaPagoNV || !statusNV) {
+            if (!numeroNV || !turnoNV || !vendedorNV) {
                 throw new Error(`Registro ${registroNum}: Faltan campos obligatorios`);
             }
             
@@ -506,8 +453,6 @@
                 numeroNV,
                 turnoNV,
                 vendedorNV,
-                formaPagoNV,
-                statusNV,
                 observacionesNV,
                 photoInfo1,
                 photoInfo2,
@@ -528,11 +473,6 @@
         nvForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             hideStatus();
-
-            if (WEB_APP_URL.includes('URL_DE_TU_APLICACION')) {
-                showStatus('Error: La URL de la aplicación web no ha sido configurada en el script.', 'error');
-                return;
-            }
 
             // Validar que se haya seleccionado un ejecutor
             const ejecutorValue = ejecutorSelect.value;
