@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Nota de Venta - FUCAS SPA</title>
+    <title>Registrar Nota de Venta - FUCAS SPA (Optimizado)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; color: #333; line-height: 1.6; padding-bottom: 100px; }
@@ -169,11 +169,10 @@
     <div class="container">
         <div class="header">
             <h1>Registro de Nota de Venta</h1>
-            <p>Formulario para el ingreso de notas de venta y sus respaldos.</p>
+            <p>Formulario para el ingreso de notas de venta y sus respaldos (Optimizado).</p>
         </div>
 
         <div class="form-section">
-            <!-- SELECTOR DE CANTIDAD DE REGISTROS -->
             <div class="mass-load-selector">
                 <label for="cantidadRegistros">¿Cuántas notas de venta quieres registrar?</label>
                 <select id="cantidadRegistros">
@@ -198,7 +197,6 @@
                     <input type="text" id="ejecutorOtro" class="input-otros" placeholder="Especifica el ejecutor">
                 </div>
 
-                <!-- CONTENEDOR PARA LOS REGISTROS DINÁMICOS -->
                 <div id="registrosContainer"></div>
 
             </form>
@@ -206,7 +204,6 @@
         </div>
     </div>
 
-    <!-- BOTÓN FLOTANTE -->
     <div class="floating-button-container">
         <button type="submit" form="nvForm" id="submitButton" class="btn btn-primary">
             💾 Guardar Nota de Venta
@@ -216,6 +213,10 @@
     <script>
         // --- CONFIGURACIÓN ---
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw87DRQRG8fMqJs3Gb5g482GbuW0tz0_tBYF_p4rzpdXyVZCbbq6L0LkAADO0XSWZJy/exec';
+        
+        // AJUSTES DE CALIDAD PARA COMPRESIÓN
+        const MAX_WIDTH = 1600; // 1600px ancho máximo (Calidad HD Documento)
+        const QUALITY = 0.8;    // 0.8 calidad JPEG (Muy buena, peso bajo)
 
         // --- ELEMENTOS DEL DOM ---
         const nvForm = document.getElementById('nvForm');
@@ -249,9 +250,9 @@
             statusMessage.style.display = 'none';
         }
 
-        function toggleSubmitButton(isDisabled) {
+        function toggleSubmitButton(isDisabled, text = null) {
             submitButton.disabled = isDisabled;
-            submitButton.innerHTML = isDisabled ? '⏳ Procesando...' : '💾 Guardar Nota(s) de Venta';
+            if (text) submitButton.innerHTML = text;
         }
 
         // --- FUNCIÓN PARA AGREGAR TEXTO A OBSERVACIONES ---
@@ -268,7 +269,6 @@
             } else {
                 textarea.value = currentValue ? `${currentValue}\n${texto}` : texto;
             }
-            
             textarea.focus();
         }
 
@@ -277,7 +277,6 @@
             return `
                 <div class="registro-item" id="registro${numero}">
                     <h3>📋 Nota de Venta ${numero}</h3>
-                    
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="fechaNV${numero}" class="required">Fecha y Hora de Registro</label>
@@ -291,8 +290,6 @@
                             <label for="turnoNV${numero}" class="required">Turno</label>
                             <input type="text" id="turnoNV${numero}" required>
                         </div>
-                        
-                        <!-- VENDEDOR CON OPCIONES -->
                         <div class="form-group">
                             <label for="vendedorNV${numero}" class="required">Vendedor</label>
                             <select id="vendedorNV${numero}" required>
@@ -307,8 +304,6 @@
                             </select>
                             <input type="text" id="vendedorNV${numero}_otro" class="input-otros" placeholder="Especifica el vendedor">
                         </div>
-                        
-                        <!-- STATUS -->
                         <div class="form-group">
                             <label for="statusNV${numero}" class="required">Status</label>
                             <select id="statusNV${numero}" required>
@@ -317,8 +312,6 @@
                                 <option value="POR PAGAR">POR PAGAR</option>
                             </select>
                         </div>
-                        
-                        <!-- OBSERVACIONES CON BOTONES DE AYUDA -->
                         <div class="form-group full-width">
                             <label for="observacionesNV${numero}">Observaciones</label>
                             <div class="observaciones-helpers">
@@ -331,42 +324,33 @@
                                 <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'C.Agil')">C.Agil</button>
                                 <button type="button" class="helper-btn has-input" onclick="agregarTextoObservaciones(${numero}, 'NC', true)">NC</button>
                             </div>
-                            <textarea id="observacionesNV${numero}" placeholder="Escribe aquí la forma de pago y otras observaciones. Usa los botones de arriba como ayuda rápida."></textarea>
+                            <textarea id="observacionesNV${numero}" placeholder="Escribe aquí la forma de pago y otras observaciones."></textarea>
                         </div>
                     </div>
-
                     <h4 style="text-align: center; border-top: 1px solid #ccc; padding-top: 20px; margin: 20px 0; color: #555;">📸 Adjuntar Fotos</h4>
-                    
                     <div class="form-grid" style="gap: 25px;">
                         <div class="form-group file-input-group">
                             <label for="photoNV${numero}_1" class="required">Foto Nota de Venta 1</label>
                             <input type="file" id="photoNV${numero}_1" accept="image/*" required>
-                            <div id="previewNV${numero}_1" class="preview-container">
-                                <small>Previsualización Foto 1</small>
-                            </div>
+                            <div id="previewNV${numero}_1" class="preview-container"><small>Previsualización Foto 1</small></div>
                         </div>
                         <div class="form-group file-input-group">
                             <label for="photoNV${numero}_2">Foto Nota de Venta 2 (Opcional)</label>
                             <input type="file" id="photoNV${numero}_2" accept="image/*">
-                            <div id="previewNV${numero}_2" class="preview-container">
-                                <small>Previsualización Foto 2</small>
-                            </div>
+                            <div id="previewNV${numero}_2" class="preview-container"><small>Previsualización Foto 2</small></div>
                         </div>
                         <div class="form-group file-input-group">
                             <label for="photoNV${numero}_3">Foto Nota de Venta 3 (Opcional)</label>
                             <input type="file" id="photoNV${numero}_3" accept="image/*">
-                            <div id="previewNV${numero}_3" class="preview-container">
-                                <small>Previsualización Foto 3</small>
-                            </div>
+                            <div id="previewNV${numero}_3" class="preview-container"><small>Previsualización Foto 3</small></div>
                         </div>
                     </div>
                 </div>
             `;
         }
 
-        // --- CONFIGURAR CAMPOS CONDICIONALES ---
+        // --- FUNCIONES AUXILIARES ---
         function configurarCamposCondicionales(registroNum) {
-            // Vendedor
             const vendedorSelect = document.getElementById(`vendedorNV${registroNum}`);
             const vendedorOtro = document.getElementById(`vendedorNV${registroNum}_otro`);
             
@@ -384,7 +368,6 @@
             }
         }
 
-        // --- FUNCIÓN PARA PREVISUALIZACIÓN DE FOTOS ---
         function previewFile(registroNum, fotoNum) {
             const input = document.getElementById(`photoNV${registroNum}_${fotoNum}`);
             const preview = document.getElementById(`previewNV${registroNum}_${fotoNum}`);
@@ -426,7 +409,6 @@
             }
         }
 
-        // --- FUNCIÓN PARA ESTABLECER FECHA Y HORA INICIAL ---
         function setInitialDateTime(registroNum) {
             const now = new Date();
             const year = now.getFullYear();
@@ -442,7 +424,6 @@
             }
         }
 
-        // --- FUNCIÓN PARA ACTUALIZAR REGISTROS ---
         function actualizarRegistros() {
             const cantidad = parseInt(cantidadRegistrosSelect.value);
             registrosContainer.innerHTML = '';
@@ -451,14 +432,12 @@
                 registrosContainer.innerHTML += crearRegistro(i);
             }
             
-            // Inicializar fecha y hora para cada registro
             for (let i = 1; i <= cantidad; i++) {
                 setInitialDateTime(i);
                 inicializarPrevisualizaciones(i);
                 configurarCamposCondicionales(i);
             }
             
-            // Actualizar texto del botón
             if (cantidad > 1) {
                 submitButton.innerHTML = `💾 Guardar ${cantidad} Notas de Venta`;
             } else {
@@ -466,56 +445,87 @@
             }
         }
 
-        // --- FUNCIÓN PARA LEER ARCHIVO COMO BASE64 ---
-        function readFileAsBase64(file) {
+        // --- SISTEMA DE COMPRESIÓN DE IMÁGENES ---
+        // Esto reduce el peso drásticamente antes de enviar
+        function comprimirImagen(file) {
             return new Promise((resolve, reject) => {
                 if (!file) return resolve(null);
+                
+                // Si no es imagen, se lee normal (fallback de seguridad)
+                if (!file.type.match(/image.*/)) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve({
+                        fileName: file.name,
+                        mimeType: file.type,
+                        base64Data: e.target.result.split(',')[1]
+                    });
+                    reader.readAsDataURL(file);
+                    return;
+                }
+
                 const reader = new FileReader();
+                reader.readAsDataURL(file);
                 reader.onload = (event) => {
-                    if (event.target.readyState === FileReader.DONE && typeof event.target.result === 'string') {
-                        const base64String = event.target.result.split(',')[1];
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Redimensionar si es muy grande (Max 1600px)
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Exportar a JPEG comprimido (Calidad 0.8)
+                        const dataUrl = canvas.toDataURL('image/jpeg', QUALITY);
+                        const base64String = dataUrl.split(',')[1];
+                        
                         resolve({
                             fileName: file.name,
-                            mimeType: file.type || 'application/octet-stream',
+                            mimeType: 'image/jpeg', // Siempre enviamos como jpeg optimizado
                             base64Data: base64String
                         });
-                    } else {
-                        reject(new Error(`Error al leer el archivo ${file.name}`));
-                    }
+                    };
+                    img.onerror = (err) => reject(new Error("Error al procesar imagen interna"));
                 };
-                reader.onerror = (error) => reject(new Error(`Error en FileReader: ${error.message}`));
-                reader.readAsDataURL(file);
+                reader.onerror = (err) => reject(new Error("Error de lectura de archivo"));
             });
         }
 
-        // --- FUNCIÓN PARA RECOPILAR DATOS DE UN REGISTRO ---
+        // --- RECOPILAR DATOS ---
         async function recopilarDatosRegistro(registroNum) {
             const numeroNV = document.getElementById(`numeroNV${registroNum}`).value.trim();
             const turnoNV = document.getElementById(`turnoNV${registroNum}`).value.trim();
             const statusNV = document.getElementById(`statusNV${registroNum}`).value;
             const observacionesNV = document.getElementById(`observacionesNV${registroNum}`).value.trim();
             
-            // Obtener vendedor
             const vendedorSelect = document.getElementById(`vendedorNV${registroNum}`).value;
             const vendedorOtro = document.getElementById(`vendedorNV${registroNum}_otro`).value.trim();
             const vendedorNV = vendedorSelect === 'OTRO' ? vendedorOtro : vendedorSelect;
             
-            // Validar campos obligatorios
             if (!numeroNV || !turnoNV || !vendedorNV || !statusNV) {
                 throw new Error(`Registro ${registroNum}: Faltan campos obligatorios`);
             }
             
-            // Validar que tenga al menos la foto 1
             const photo1Input = document.getElementById(`photoNV${registroNum}_1`);
             if (!photo1Input.files[0]) {
                 throw new Error(`Registro ${registroNum}: La foto 1 es obligatoria`);
             }
             
-            // Leer fotos
+            // Usar la función de compresión
             const photoPromises = [
-                readFileAsBase64(document.getElementById(`photoNV${registroNum}_1`).files[0]),
-                readFileAsBase64(document.getElementById(`photoNV${registroNum}_2`).files[0]),
-                readFileAsBase64(document.getElementById(`photoNV${registroNum}_3`).files[0])
+                comprimirImagen(document.getElementById(`photoNV${registroNum}_1`).files[0]),
+                comprimirImagen(document.getElementById(`photoNV${registroNum}_2`).files[0]),
+                comprimirImagen(document.getElementById(`photoNV${registroNum}_3`).files[0])
             ];
             
             const [photoInfo1, photoInfo2, photoInfo3] = await Promise.all(photoPromises);
@@ -547,7 +557,6 @@
             event.preventDefault();
             hideStatus();
 
-            // Validar que se haya seleccionado un ejecutor
             const ejecutorValue = ejecutorSelect.value;
             let ejecutor = ejecutorValue;
             if (ejecutorValue === 'OTRO') {
@@ -563,17 +572,17 @@
 
             const cantidad = parseInt(cantidadRegistrosSelect.value);
             
-            toggleSubmitButton(true);
-            showStatus(`Preparando ${cantidad} registro(s)... Esto puede tardar un momento.`, 'loading');
+            toggleSubmitButton(true, '⏳ Comprimiendo y Enviando...');
+            showStatus(`Procesando imágenes y enviando ${cantidad} registro(s)...`, 'loading');
 
             try {
-                // Recopilar datos de todos los registros
+                // Recopilar datos de todos los registros (Incluye compresión)
                 const registrosPromises = [];
                 for (let i = 1; i <= cantidad; i++) {
                     registrosPromises.push(recopilarDatosRegistro(i));
                 }
                 
-                showStatus(`Leyendo archivos de ${cantidad} registro(s)...`, 'loading');
+                // Esperar a que todas las imágenes se compriman
                 const registrosData = await Promise.all(registrosPromises);
                 
                 // Agregar el ejecutor a cada registro
@@ -581,9 +590,9 @@
                     registro.user = ejecutor;
                 });
                 
-                showStatus(`Enviando ${cantidad} registro(s) al servidor...`, 'loading');
+                showStatus(`Enviando datos optimizados al servidor...`, 'loading');
 
-                // Enviar todos los registros de una vez
+                // Enviar al servidor
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
                     mode: 'cors',
@@ -613,7 +622,7 @@
                 showStatus(`Error: ${error.message}`, 'error');
                 console.error('Error en el proceso de envío:', error);
             } finally {
-                toggleSubmitButton(false);
+                toggleSubmitButton(false, '💾 Guardar Nota de Venta');
                 setTimeout(hideStatus, 10000);
             }
         });
