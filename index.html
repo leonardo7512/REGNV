@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Nota de Venta - FUCAS SPA (Grid Layout)</title>
+    <title>Registrar Nota de Venta - FUCAS SPA (Tabs)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; color: #333; line-height: 1.6; padding-bottom: 100px; }
-        .container { max-width: 1400px; margin: 20px auto; padding: 20px; }
+        .container { max-width: 900px; margin: 20px auto; padding: 20px; }
         .header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
         .header h1 { font-size: 2rem; margin-bottom: 10px; }
         .form-section { background: white; border-radius: 10px; padding: 30px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -73,26 +73,6 @@
         .btn-primary:hover:not(:disabled) { background-color: #218838; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4); }
         .btn:disabled { background-color: #cccccc; cursor: not-allowed; }
         
-        .floating-button-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            left: 20px;
-            max-width: 400px;
-            margin: 0 auto;
-            z-index: 1000;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        
-        .floating-button-container .btn {
-            border-radius: 12px;
-            padding: 16px 24px;
-            font-size: 18px;
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-        }
-        
         .status-message { padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; display: none; }
         .status-message.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .status-message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
@@ -134,7 +114,6 @@
             color: white;
         }
         
-        /* Ocultar inputs de archivo nativos */
         .file-input-group input[type="file"] {
             display: none;
         }
@@ -167,28 +146,70 @@
             cursor: pointer;
         }
         
-        /* NUEVO: Grid para múltiples registros */
-        #registrosContainer {
-            display: grid;
-            gap: 20px;
+        /* SISTEMA DE PESTAÑAS */
+        .tabs-container {
+            margin-bottom: 20px;
         }
         
-        /* 1 registro: 1 columna completa */
-        #registrosContainer.cantidad-1 {
-            grid-template-columns: 1fr;
+        .tabs-nav {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #e5e7eb;
         }
         
-        /* 2-10 registros: 2 columnas */
-        #registrosContainer.cantidad-2,
-        #registrosContainer.cantidad-3,
-        #registrosContainer.cantidad-4,
-        #registrosContainer.cantidad-5,
-        #registrosContainer.cantidad-6,
-        #registrosContainer.cantidad-7,
-        #registrosContainer.cantidad-8,
-        #registrosContainer.cantidad-9,
-        #registrosContainer.cantidad-10 {
-            grid-template-columns: repeat(2, 1fr);
+        .tab-button {
+            padding: 12px 20px;
+            background: #e5e7eb;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: #6b7280;
+            transition: all 0.3s;
+            white-space: nowrap;
+            position: relative;
+            min-width: 100px;
+        }
+        
+        .tab-button:hover {
+            background: #d1d5db;
+        }
+        
+        .tab-button.active {
+            background: #007bff;
+            color: white;
+            transform: translateY(2px);
+        }
+        
+        .tab-button.completed {
+            background: #28a745;
+            color: white;
+        }
+        
+        .tab-button.completed::after {
+            content: "✓";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .registro-item { 
@@ -196,26 +217,6 @@
             border-radius: 10px; 
             padding: 20px; 
             background: #f8f9fa;
-            position: relative;
-        }
-        
-        /* Compactar el registro cuando hay múltiples */
-        #registrosContainer:not(.cantidad-1) .registro-item {
-            padding: 15px;
-        }
-        
-        #registrosContainer:not(.cantidad-1) .registro-item h3 {
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-        }
-        
-        #registrosContainer:not(.cantidad-1) .form-grid {
-            gap: 12px;
-        }
-        
-        #registrosContainer:not(.cantidad-1) .file-input-group {
-            padding: 10px;
         }
         
         .registro-item h3 { 
@@ -235,19 +236,135 @@
             font-size: 1rem;
         }
         
-        @media (max-width: 1200px) {
-            /* En pantallas medianas, solo 1 columna */
-            #registrosContainer.cantidad-2,
-            #registrosContainer.cantidad-3,
-            #registrosContainer.cantidad-4,
-            #registrosContainer.cantidad-5,
-            #registrosContainer.cantidad-6,
-            #registrosContainer.cantidad-7,
-            #registrosContainer.cantidad-8,
-            #registrosContainer.cantidad-9,
-            #registrosContainer.cantidad-10 {
-                grid-template-columns: 1fr;
-            }
+        /* NAVEGACIÓN DE PESTAÑAS */
+        .tab-navigation {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: 2px solid #007bff;
+            background: white;
+            color: #007bff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #007bff;
+            color: white;
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        /* BOTÓN FLOTANTE */
+        .floating-button-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            z-index: 1000;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .floating-button-container .btn {
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        /* MODAL DE CONFIRMACIÓN */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideDown 0.3s;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #007bff;
+            text-align: center;
+        }
+        
+        .modal-body {
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn.confirm {
+            background: #28a745;
+            color: white;
+        }
+        
+        .modal-btn.confirm:hover {
+            background: #218838;
+        }
+        
+        .modal-btn.cancel {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .modal-btn.cancel:hover {
+            background: #5a6268;
         }
         
         @media (max-width: 768px) {
@@ -267,6 +384,14 @@
                 font-size: 12px;
                 padding: 8px;
             }
+            .tab-button {
+                padding: 10px 15px;
+                font-size: 13px;
+                min-width: 80px;
+            }
+            .tabs-nav {
+                gap: 3px;
+            }
         }
     </style>
 </head>
@@ -274,7 +399,7 @@
     <div class="container">
         <div class="header">
             <h1>Registro de Nota de Venta</h1>
-            <p>Formulario para el ingreso de notas de venta y sus respaldos (Grid Layout).</p>
+            <p>Sistema de pestañas para registro múltiple</p>
         </div>
 
         <div class="form-section">
@@ -307,7 +432,10 @@
                     <input type="text" id="ejecutorOtro" class="input-otros" placeholder="Especifica el ejecutor">
                 </div>
 
-                <div id="registrosContainer" class="cantidad-1"></div>
+                <div class="tabs-container">
+                    <div class="tabs-nav" id="tabsNav"></div>
+                    <div id="tabsContent"></div>
+                </div>
 
             </form>
             <div id="statusMessage" class="status-message"></div>
@@ -318,6 +446,18 @@
         <button type="submit" form="nvForm" id="submitButton" class="btn btn-primary">
             💾 Guardar Nota de Venta
         </button>
+    </div>
+
+    <!-- Modal de confirmación -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">⚠️ Confirmación</div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="modalCancel">Cancelar</button>
+                <button class="modal-btn confirm" id="modalConfirm">OK, Subir</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -332,9 +472,18 @@
         const submitButton = document.getElementById('submitButton');
         const statusMessage = document.getElementById('statusMessage');
         const cantidadRegistrosSelect = document.getElementById('cantidadRegistros');
-        const registrosContainer = document.getElementById('registrosContainer');
+        const tabsNav = document.getElementById('tabsNav');
+        const tabsContent = document.getElementById('tabsContent');
         const ejecutorSelect = document.getElementById('ejecutor');
         const ejecutorOtro = document.getElementById('ejecutorOtro');
+        const confirmModal = document.getElementById('confirmModal');
+        const modalBody = document.getElementById('modalBody');
+        const modalConfirm = document.getElementById('modalConfirm');
+        const modalCancel = document.getElementById('modalCancel');
+
+        let currentTab = 1;
+        let totalTabs = 1;
+        let confirmCallback = null;
 
         // --- MANEJO DE "OTRO" EN EJECUTOR ---
         ejecutorSelect.addEventListener('change', () => {
@@ -347,6 +496,26 @@
                 ejecutorOtro.value = '';
             }
         });
+
+        // --- MODAL ---
+        modalCancel.addEventListener('click', () => {
+            confirmModal.style.display = 'none';
+            confirmCallback = null;
+        });
+
+        modalConfirm.addEventListener('click', () => {
+            confirmModal.style.display = 'none';
+            if (confirmCallback) {
+                confirmCallback();
+                confirmCallback = null;
+            }
+        });
+
+        function mostrarModal(mensaje, callback) {
+            modalBody.textContent = mensaje;
+            confirmModal.style.display = 'block';
+            confirmCallback = callback;
+        }
 
         // --- FUNCIONES DE UI ---
         function showStatus(message, type = 'loading') {
@@ -392,104 +561,175 @@
             inputGallery.click();
         }
 
+        // --- NAVEGACIÓN DE PESTAÑAS ---
+        function cambiarTab(tabNum) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar la pestaña seleccionada
+            const selectedTab = document.getElementById(`tabContent${tabNum}`);
+            const selectedBtn = document.getElementById(`tabButton${tabNum}`);
+            
+            if (selectedTab && selectedBtn) {
+                selectedTab.classList.add('active');
+                selectedBtn.classList.add('active');
+                currentTab = tabNum;
+                
+                // Scroll al botón de la pestaña
+                selectedBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
+
+        function siguienteTab() {
+            marcarTabComoCompleta(currentTab);
+            if (currentTab < totalTabs) {
+                cambiarTab(currentTab + 1);
+            }
+        }
+
+        function anteriorTab() {
+            if (currentTab > 1) {
+                cambiarTab(currentTab - 1);
+            }
+        }
+
+        function marcarTabComoCompleta(tabNum) {
+            const btn = document.getElementById(`tabButton${tabNum}`);
+            if (btn && esTabCompleta(tabNum)) {
+                btn.classList.add('completed');
+            }
+        }
+
+        function esTabCompleta(tabNum) {
+            const numeroNV = document.getElementById(`numeroNV${tabNum}`);
+            const turnoNV = document.getElementById(`turnoNV${tabNum}`);
+            const vendedorNV = document.getElementById(`vendedorNV${tabNum}`);
+            const statusNV = document.getElementById(`statusNV${tabNum}`);
+            const photo1Camera = document.getElementById(`photoNV${tabNum}_1_camera`);
+            const photo1Gallery = document.getElementById(`photoNV${tabNum}_1_gallery`);
+            
+            return numeroNV && numeroNV.value.trim() &&
+                   turnoNV && turnoNV.value.trim() &&
+                   vendedorNV && vendedorNV.value &&
+                   statusNV && statusNV.value &&
+                   (photo1Camera.files[0] || photo1Gallery.files[0]);
+        }
+
         // --- FUNCIÓN PARA CREAR UN REGISTRO ---
         function crearRegistro(numero) {
             return `
-                <div class="registro-item" id="registro${numero}">
-                    <h3>📋 NV ${numero}</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="fechaNV${numero}" class="required">Fecha y Hora</label>
-                            <input type="datetime-local" id="fechaNV${numero}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="numeroNV${numero}" class="required">Nº Nota Venta</label>
-                            <input type="text" id="numeroNV${numero}" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="turnoNV${numero}" class="required">Turno</label>
-                            <input type="text" id="turnoNV${numero}" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="vendedorNV${numero}" class="required">Vendedor</label>
-                            <select id="vendedorNV${numero}" required>
-                                <option value="">-- Vendedor --</option>
-                                <option value="AF">AF</option>
-                                <option value="YR">YR</option>
-                                <option value="LC">LC</option>
-                                <option value="JG">JG</option>
-                                <option value="LR">LR</option>
-                                <option value="ADM">ADM</option>
-                                <option value="OTRO">Otro</option>
-                            </select>
-                            <input type="text" id="vendedorNV${numero}_otro" class="input-otros" placeholder="Especifica">
-                        </div>
-                        <div class="form-group">
-                            <label for="statusNV${numero}" class="required">Status</label>
-                            <select id="statusNV${numero}" required>
-                                <option value="">-- Status --</option>
-                                <option value="PAGADO">PAGADO</option>
-                                <option value="POR PAGAR">POR PAGAR</option>
-                            </select>
-                        </div>
-                        <div class="form-group full-width">
-                            <label for="observacionesNV${numero}">Observaciones</label>
-                            <div class="observaciones-helpers">
-                                <button type="button" class="helper-btn has-input" onclick="agregarTextoObservaciones(${numero}, 'Efectivo cc', true)">Efectivo CC</button>
-                                <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'Santander')">Santander</button>
-                                <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'Estado')">Estado</button>
-                                <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'Getnet')">Getnet</button>
-                                <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'MP')">MP</button>
-                                <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'Credito')">Crédito</button>
-                                <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'C.Agil')">C.Agil</button>
-                                <button type="button" class="helper-btn has-input" onclick="agregarTextoObservaciones(${numero}, 'NC', true)">NC</button>
+                <div class="tab-content" id="tabContent${numero}">
+                    <div class="registro-item">
+                        <h3>📋 Nota de Venta ${numero}</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="fechaNV${numero}" class="required">Fecha y Hora</label>
+                                <input type="datetime-local" id="fechaNV${numero}" readonly>
                             </div>
-                            <textarea id="observacionesNV${numero}" placeholder="Forma de pago y observaciones..."></textarea>
-                        </div>
-                    </div>
-                    <h4>📸 Adjuntar Fotos</h4>
-                    <div class="form-grid">
-                        <div class="form-group file-input-group">
-                            <label class="required">Foto 1</label>
-                            <div class="photo-buttons">
-                                <button type="button" class="photo-btn" onclick="abrirCamara(${numero}, 1)">
-                                    📷 Cámara
-                                </button>
-                                <button type="button" class="photo-btn" onclick="abrirGaleria(${numero}, 1)">
-                                    🖼️ Galería
-                                </button>
+                            <div class="form-group">
+                                <label for="numeroNV${numero}" class="required">Nº Nota Venta</label>
+                                <input type="text" id="numeroNV${numero}" required>
                             </div>
-                            <input type="file" id="photoNV${numero}_1_camera" accept="image/*" capture="environment">
-                            <input type="file" id="photoNV${numero}_1_gallery" accept="image/*">
-                            <div id="previewNV${numero}_1" class="preview-container"><small>Vista previa 1</small></div>
-                        </div>
-                        <div class="form-group file-input-group">
-                            <label>Foto 2 (Opcional)</label>
-                            <div class="photo-buttons">
-                                <button type="button" class="photo-btn" onclick="abrirCamara(${numero}, 2)">
-                                    📷 Cámara
-                                </button>
-                                <button type="button" class="photo-btn" onclick="abrirGaleria(${numero}, 2)">
-                                    🖼️ Galería
-                                </button>
+                            <div class="form-group">
+                                <label for="turnoNV${numero}" class="required">Turno</label>
+                                <input type="text" id="turnoNV${numero}" required>
                             </div>
-                            <input type="file" id="photoNV${numero}_2_camera" accept="image/*" capture="environment">
-                            <input type="file" id="photoNV${numero}_2_gallery" accept="image/*">
-                            <div id="previewNV${numero}_2" class="preview-container"><small>Vista previa 2</small></div>
-                        </div>
-                        <div class="form-group file-input-group">
-                            <label>Foto 3 (Opcional)</label>
-                            <div class="photo-buttons">
-                                <button type="button" class="photo-btn" onclick="abrirCamara(${numero}, 3)">
-                                    📷 Cámara
-                                </button>
-                                <button type="button" class="photo-btn" onclick="abrirGaleria(${numero}, 3)">
-                                    🖼️ Galería
-                                </button>
+                            <div class="form-group">
+                                <label for="vendedorNV${numero}" class="required">Vendedor</label>
+                                <select id="vendedorNV${numero}" required>
+                                    <option value="">-- Vendedor --</option>
+                                    <option value="AF">AF</option>
+                                    <option value="YR">YR</option>
+                                    <option value="LC">LC</option>
+                                    <option value="JG">JG</option>
+                                    <option value="LR">LR</option>
+                                    <option value="ADM">ADM</option>
+                                    <option value="OTRO">Otro</option>
+                                </select>
+                                <input type="text" id="vendedorNV${numero}_otro" class="input-otros" placeholder="Especifica">
                             </div>
-                            <input type="file" id="photoNV${numero}_3_camera" accept="image/*" capture="environment">
-                            <input type="file" id="photoNV${numero}_3_gallery" accept="image/*">
-                            <div id="previewNV${numero}_3" class="preview-container"><small>Vista previa 3</small></div>
+                            <div class="form-group">
+                                <label for="statusNV${numero}" class="required">Status</label>
+                                <select id="statusNV${numero}" required>
+                                    <option value="">-- Status --</option>
+                                    <option value="PAGADO">PAGADO</option>
+                                    <option value="POR PAGAR">POR PAGAR</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="observacionesNV${numero}">Observaciones</label>
+                                <div class="observaciones-helpers">
+                                    <button type="button" class="helper-btn has-input" onclick="agregarTextoObservaciones(${numero}, 'Efectivo cc', true)">Efectivo CC</button>
+                                    <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'Santander')">Santander</button>
+                                    <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'Estado')">Estado</button>
+                                    <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'Getnet')">Getnet</button>
+                                    <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'MP')">MP</button>
+                                    <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'Credito')">Crédito</button>
+                                    <button type="button" class="helper-btn" onclick="agregarTextoObservaciones(${numero}, 'C.Agil')">C.Agil</button>
+                                    <button type="button" class="helper-btn has-input" onclick="agregarTextoObservaciones(${numero}, 'NC', true)">NC</button>
+                                </div>
+                                <textarea id="observacionesNV${numero}" placeholder="Forma de pago y observaciones..."></textarea>
+                            </div>
+                        </div>
+                        <h4>📸 Adjuntar Fotos</h4>
+                        <div class="form-grid">
+                            <div class="form-group file-input-group">
+                                <label class="required">Foto 1</label>
+                                <div class="photo-buttons">
+                                    <button type="button" class="photo-btn" onclick="abrirCamara(${numero}, 1)">
+                                        📷 Cámara
+                                    </button>
+                                    <button type="button" class="photo-btn" onclick="abrirGaleria(${numero}, 1)">
+                                        🖼️ Galería
+                                    </button>
+                                </div>
+                                <input type="file" id="photoNV${numero}_1_camera" accept="image/*" capture="environment">
+                                <input type="file" id="photoNV${numero}_1_gallery" accept="image/*">
+                                <div id="previewNV${numero}_1" class="preview-container"><small>Vista previa 1</small></div>
+                            </div>
+                            <div class="form-group file-input-group">
+                                <label>Foto 2 (Opcional)</label>
+                                <div class="photo-buttons">
+                                    <button type="button" class="photo-btn" onclick="abrirCamara(${numero}, 2)">
+                                        📷 Cámara
+                                    </button>
+                                    <button type="button" class="photo-btn" onclick="abrirGaleria(${numero}, 2)">
+                                        🖼️ Galería
+                                    </button>
+                                </div>
+                                <input type="file" id="photoNV${numero}_2_camera" accept="image/*" capture="environment">
+                                <input type="file" id="photoNV${numero}_2_gallery" accept="image/*">
+                                <div id="previewNV${numero}_2" class="preview-container"><small>Vista previa 2</small></div>
+                            </div>
+                            <div class="form-group file-input-group">
+                                <label>Foto 3 (Opcional)</label>
+                                <div class="photo-buttons">
+                                    <button type="button" class="photo-btn" onclick="abrirCamara(${numero}, 3)">
+                                        📷 Cámara
+                                    </button>
+                                    <button type="button" class="photo-btn" onclick="abrirGaleria(${numero}, 3)">
+                                        🖼️ Galería
+                                    </button>
+                                </div>
+                                <input type="file" id="photoNV${numero}_3_camera" accept="image/*" capture="environment">
+                                <input type="file" id="photoNV${numero}_3_gallery" accept="image/*">
+                                <div id="previewNV${numero}_3" class="preview-container"><small>Vista previa 3</small></div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-navigation">
+                            <button type="button" class="nav-btn" onclick="anteriorTab()" ${numero === 1 ? 'disabled' : ''}>
+                                ← Anterior
+                            </button>
+                            <button type="button" class="nav-btn" onclick="siguienteTab()" ${numero === totalTabs ? 'disabled' : ''}>
+                                Siguiente →
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -529,7 +769,6 @@
                 reader.onload = e => {
                     preview.innerHTML = `<img src="${e.target.result}" alt="Previsualización"><button type="button" class="remove-photo-btn" title="Quitar foto" style="display:flex;">X</button>`;
                     
-                    // Marcar botones como activos
                     const btnCamera = preview.parentElement.querySelector('.photo-buttons .photo-btn:first-child');
                     const btnGallery = preview.parentElement.querySelector('.photo-buttons .photo-btn:last-child');
                     if (btnCamera && btnGallery) {
@@ -543,7 +782,6 @@
                 small.textContent = `Vista previa ${fotoNum}`;
                 preview.appendChild(small);
                 
-                // Remover clase activa de botones
                 const btnCamera = preview.parentElement.querySelector('.photo-buttons .photo-btn:first-child');
                 const btnGallery = preview.parentElement.querySelector('.photo-buttons .photo-btn:last-child');
                 if (btnCamera && btnGallery) {
@@ -562,7 +800,6 @@
                 if (inputCamera) {
                     inputCamera.addEventListener('change', (e) => {
                         if (e.target.files[0]) {
-                            // Copiar archivo al otro input también
                             const dt = new DataTransfer();
                             dt.items.add(e.target.files[0]);
                             inputGallery.files = dt.files;
@@ -574,7 +811,6 @@
                 if (inputGallery) {
                     inputGallery.addEventListener('change', (e) => {
                         if (e.target.files[0]) {
-                            // Copiar archivo al otro input también
                             const dt = new DataTransfer();
                             dt.items.add(e.target.files[0]);
                             inputCamera.files = dt.files;
@@ -612,15 +848,36 @@
 
         function actualizarRegistros() {
             const cantidad = parseInt(cantidadRegistrosSelect.value);
-            registrosContainer.innerHTML = '';
+            totalTabs = cantidad;
+            currentTab = 1;
             
-            // Actualizar la clase del container para el grid
-            registrosContainer.className = `cantidad-${cantidad}`;
+            // Limpiar pestañas
+            tabsNav.innerHTML = '';
+            tabsContent.innerHTML = '';
             
+            // Crear botones de pestañas
             for (let i = 1; i <= cantidad; i++) {
-                registrosContainer.innerHTML += crearRegistro(i);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `tab-button ${i === 1 ? 'active' : ''}`;
+                btn.id = `tabButton${i}`;
+                btn.textContent = `NV ${i}`;
+                btn.onclick = () => cambiarTab(i);
+                tabsNav.appendChild(btn);
             }
             
+            // Crear contenido de pestañas
+            for (let i = 1; i <= cantidad; i++) {
+                tabsContent.innerHTML += crearRegistro(i);
+            }
+            
+            // Mostrar primera pestaña
+            const firstTab = document.getElementById('tabContent1');
+            if (firstTab) {
+                firstTab.classList.add('active');
+            }
+            
+            // Inicializar cada registro
             for (let i = 1; i <= cantidad; i++) {
                 setInitialDateTime(i);
                 inicializarPrevisualizaciones(i);
@@ -688,25 +945,31 @@
 
         // --- RECOPILAR DATOS ---
         async function recopilarDatosRegistro(registroNum) {
-            const numeroNV = document.getElementById(`numeroNV${registroNum}`).value.trim();
-            const turnoNV = document.getElementById(`turnoNV${registroNum}`).value.trim();
-            const statusNV = document.getElementById(`statusNV${registroNum}`).value;
-            const observacionesNV = document.getElementById(`observacionesNV${registroNum}`).value.trim();
+            const numeroNV = document.getElementById(`numeroNV${registroNum}`);
+            const turnoNV = document.getElementById(`turnoNV${registroNum}`);
+            const statusNV = document.getElementById(`statusNV${registroNum}`);
+            const observacionesNV = document.getElementById(`observacionesNV${registroNum}`);
+            
+            // Si los campos no existen o están vacíos, retornar null
+            if (!numeroNV || !numeroNV.value.trim() || 
+                !turnoNV || !turnoNV.value.trim() || 
+                !statusNV || !statusNV.value) {
+                return null;
+            }
             
             const vendedorSelect = document.getElementById(`vendedorNV${registroNum}`).value;
             const vendedorOtro = document.getElementById(`vendedorNV${registroNum}_otro`).value.trim();
             const vendedorNV = vendedorSelect === 'OTRO' ? vendedorOtro : vendedorSelect;
             
-            if (!numeroNV || !turnoNV || !vendedorNV || !statusNV) {
-                throw new Error(`Registro ${registroNum}: Faltan campos obligatorios`);
+            if (!vendedorNV) {
+                return null;
             }
             
-            // Verificar que al menos uno de los inputs tenga archivo (camera o gallery)
             const photo1Camera = document.getElementById(`photoNV${registroNum}_1_camera`);
             const photo1Gallery = document.getElementById(`photoNV${registroNum}_1_gallery`);
             
             if (!photo1Camera.files[0] && !photo1Gallery.files[0]) {
-                throw new Error(`Registro ${registroNum}: La foto 1 es obligatoria`);
+                return null;
             }
             
             const photoPromises = [
@@ -719,11 +982,11 @@
             
             return {
                 fechaNV: new Date().toISOString(),
-                numeroNV,
-                turnoNV,
+                numeroNV: numeroNV.value.trim(),
+                turnoNV: turnoNV.value.trim(),
                 vendedorNV,
-                statusNV,
-                observacionesNV,
+                statusNV: statusNV.value,
+                observacionesNV: observacionesNV.value.trim(),
                 photoInfo1,
                 photoInfo2,
                 photoInfo3
@@ -757,19 +1020,42 @@
                 return;
             }
 
-            const cantidad = parseInt(cantidadRegistrosSelect.value);
+            const cantidadSeleccionada = parseInt(cantidadRegistrosSelect.value);
             
+            // Recopilar datos válidos
+            const registrosPromises = [];
+            for (let i = 1; i <= cantidadSeleccionada; i++) {
+                registrosPromises.push(recopilarDatosRegistro(i));
+            }
+            
+            const todosLosRegistros = await Promise.all(registrosPromises);
+            const registrosValidos = todosLosRegistros.filter(r => r !== null);
+            const cantidadReal = registrosValidos.length;
+            
+            // Si no hay registros válidos
+            if (cantidadReal === 0) {
+                showStatus('Error: No hay registros completos para subir. Completa al menos una nota de venta.', 'error');
+                return;
+            }
+            
+            // Si la cantidad real es diferente a la seleccionada, confirmar
+            if (cantidadReal !== cantidadSeleccionada) {
+                mostrarModal(
+                    `Seleccionaste ${cantidadSeleccionada} registros pero solo ${cantidadReal} están completos. ¿Deseas subir solo los ${cantidadReal} registros completos?`,
+                    async () => {
+                        await procesarEnvio(ejecutor, registrosValidos, cantidadReal);
+                    }
+                );
+            } else {
+                await procesarEnvio(ejecutor, registrosValidos, cantidadReal);
+            }
+        });
+
+        async function procesarEnvio(ejecutor, registrosData, cantidad) {
             toggleSubmitButton(true, '⏳ Comprimiendo y Enviando...');
             showStatus(`Procesando imágenes y enviando ${cantidad} registro(s)...`, 'loading');
 
             try {
-                const registrosPromises = [];
-                for (let i = 1; i <= cantidad; i++) {
-                    registrosPromises.push(recopilarDatosRegistro(i));
-                }
-                
-                const registrosData = await Promise.all(registrosPromises);
-                
                 registrosData.forEach(registro => {
                     registro.user = ejecutor;
                 });
@@ -808,7 +1094,7 @@
                 toggleSubmitButton(false, '💾 Guardar Nota de Venta');
                 setTimeout(hideStatus, 10000);
             }
-        });
+        }
     </script>
 </body>
 </html>
